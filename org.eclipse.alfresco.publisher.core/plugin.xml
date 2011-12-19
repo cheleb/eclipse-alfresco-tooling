@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         id="alfrescoResourceBuilder"
+         name="Alfresco Resource Builder"
+         point="org.eclipse.core.resources.builders">
+      <builder
+            hasNature="true">
+         <run
+               class="org.eclipse.alfresco.publisher.core.builder.AlfrescoResourceBuilder">
+         </run>
+      </builder>
+   </extension>
+   <extension
+         id="alfrescoNature"
+         name="Alfresco Project Nature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="org.eclipse.alfresco.publisher.core.builder.AlfrescoNature">
+         </run>
+      </runtime>
+      <builder
+            id="org.eclipse.alfresco.publisher.core.alfrescoResourceBuilder">
+      </builder>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="true"
+            id="org.eclipse.alfresco.publisher.core.contribution1"
+            nameFilter="*"
+            objectClass="org.eclipse.core.resources.IProject">
+         <action
+               class="org.eclipse.alfresco.publisher.core.builder.ToggleNatureAction"
+               enablesFor="+"
+               id="org.eclipse.alfresco.publisher.core.addRemoveNatureAction"
+               label="Add/Remove Sample Nature"
+               menubarPath="additions">
+         </action>
+      </objectContribution>
+   </extension>
+   <extension
+         id="xmlProblem"
+         name="XML Problem"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+   </extension>
+
+</plugin>
