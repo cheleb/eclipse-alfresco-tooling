@@ -52,5 +52,20 @@
             value="true">
       </persistent>
    </extension>
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            category="alfresco"
+            class="org.eclipse.alfresco.publisher.core.properties.AlfrescoPropertyPage"
+            id="org.eclipse.alfresco.publisher.core.properties.alfrescoPropertyPage"
+            name="General properties Page"
+            nameFilter="*.*">
+         <enabledWhen>
+            <instanceof
+                  value="org.eclipse.core.resources.IProject">
+            </instanceof>
+         </enabledWhen>
+      </page>
+   </extension>
 
 </plugin>
