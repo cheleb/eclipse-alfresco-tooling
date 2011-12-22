@@ -17,4 +17,6 @@ public interface Deployer {
 	public void removeResource(IResource resource);
 
 	public void updateResource(IResource resource);
+	
+	public String getRoot();
 }

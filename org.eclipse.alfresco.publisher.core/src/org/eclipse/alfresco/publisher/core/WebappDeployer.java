@@ -64,4 +64,9 @@ public class WebappDeployer extends AbstractDeployer {
 		return new File(webappPath, "WEB-INF/classes");
 	}
 
+	@Override
+	public String getRoot() {
+		return webappPath;
+	}
+
 }

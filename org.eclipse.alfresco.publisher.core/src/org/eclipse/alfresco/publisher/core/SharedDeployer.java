@@ -19,6 +19,12 @@ public class SharedDeployer extends AbstractDeployer {
 		return new File(sharedPath, "classes");
 	}
 
+
+	@Override
+	public String getRoot() {
+		return sharedPath;
+	}
+
 	
 
 }

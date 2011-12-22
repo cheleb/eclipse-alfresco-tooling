@@ -6,6 +6,8 @@ import java.io.PrintWriter;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,34 +96,40 @@ public abstract class AbstractDeployer implements Deployer {
 		if (toRemove == null) {
 			System.err.println("Could not remove: " + resource);
 		} else {
-			if (toRemove.getDst().isDirectory()) {
-				try {
-					logPrinter.append("RM ");
-					logPrinter.append(toRemove.getType()).append(" ");
-					logPrinter.append(toRemove.getSrcLog());
-					logPrinter.append(" -> ");
-					logPrinter.append("\n");
-					FileUtils.deleteDirectory(toRemove.getDst());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+			if (toRemove.getDst().getAbsolutePath().startsWith(getRoot())) {
+				if (toRemove.getDst().isDirectory()) {
+					try {
+						log("RM", toRemove);
+						FileUtils.deleteDirectory(toRemove.getDst());
+					} catch (IOException e) {
+						LOGGER.error(
+								"Could not delete dir: " + toRemove.getDst(), e);
+					}
 				}
-			}
-			if (toRemove.getDst().isFile()) {
-				toRemove.getDst().delete();
+				if (toRemove.getDst().isFile()) {
+					toRemove.getDst().delete();
+				}
+			} else {
+				MessageDialog.openError(Display.getDefault().getActiveShell(),
+						"Oullla", "Outside root dir : " + toRemove.getDst());
+				LOGGER.error("Outside root dir : " + toRemove.getDst());
 			}
 
 		}
 
 	}
 
+	private void log(String what, ResourceCommand toRemove) {
+		logPrinter.append(what).append(" ");
+		logPrinter.append(toRemove.getType()).append(" ");
+		logPrinter.append(toRemove.getSrcLog());
+		logPrinter.append(" -> ");
+		logPrinter.append("\n");
+	}
+
 	void copyResource(ResourceCommand c) {
 		try {
-			logPrinter.append("CP ");
-			logPrinter.append(c.getType()).append(" ");
-			logPrinter.append(c.getSrcLog());
-			logPrinter.append(" -> ");
-			logPrinter.append("\n");
+			log("CP", c);
 			FileUtils.copyFile(c.getSrc(), c.getDst());
 		} catch (IOException e) {
 			LOGGER.error("Fail deploying: ", e);
