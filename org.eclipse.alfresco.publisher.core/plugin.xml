@@ -78,6 +78,20 @@
    <extension
          point="org.eclipse.ui.propertyPages">
       <page
+            class="org.eclipse.alfresco.publisher.core.preferences.WorkbenchPreference"
+            id="alfresco"
+            name="Alfresco">
+             <enabledWhen>
+            <instanceof
+                  value="org.eclipse.core.resources.IProject">
+            </instanceof>
+         </enabledWhen>
+            <filter
+               name="nature"
+               value="org.eclipse.alfresco.publisher.core.alfrescoNature">
+         </filter>
+      </page>
+      <page
             category="alfresco"
             class="org.eclipse.alfresco.publisher.core.properties.AlfrescoPropertyPage"
             id="org.eclipse.alfresco.publisher.core.properties.alfrescoPropertyPage"
@@ -88,6 +102,10 @@
                   value="org.eclipse.core.resources.IProject">
             </instanceof>
          </enabledWhen>
+          <filter
+               name="nature"
+               value="org.eclipse.alfresco.publisher.core.alfrescoNature">
+         </filter>
       </page>
    </extension>
    <extension
@@ -111,12 +129,6 @@
                relative="org.eclipse.ui.views.TaskList">
          </view>
       </perspectiveExtension>
-   </extension>
-   <extension
-         point="org.eclipse.help.contexts">
-      <contexts
-            file="contexts.xml">
-      </contexts>
    </extension>
    <extension
          point="org.eclipse.ui.commands">
