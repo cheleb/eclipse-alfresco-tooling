@@ -40,6 +40,29 @@
                menubarPath="additions">
          </action>
       </objectContribution>
+      <objectContribution
+            id="org.eclipse.alfresco.publisher.core.contribution"
+            objectClass="org.eclipse.core.resources.IProject">
+         <menu
+               id="org.eclipse.alfresco.publisher.core.menu1"
+               label="Alfresco"
+               path="additions">
+            <separator
+                  name="group1">
+            </separator>
+         </menu>
+         <action
+               class="org.eclipse.alfresco.publisher.core.popup.actions.Deploy"
+               enablesFor="1"
+               id="org.eclipse.alfresco.publisher.core.newAction"
+               label="Deploy"
+               menubarPath="org.eclipse.alfresco.publisher.core.menu1/group1">
+         </action>
+         <filter
+               name="projectNature"
+               value="org.eclipse.alfresco.publisher.core.alfrescoNature">
+         </filter>
+      </objectContribution>
    </extension>
    <extension
          id="xmlProblem"
@@ -66,6 +89,90 @@
             </instanceof>
          </enabledWhen>
       </page>
+   </extension>
+   <extension
+         point="org.eclipse.m2e.core.projectConfigurators">
+      <configurator
+            class="org.eclipse.alfresco.publisher.core.configurator.AlfrescoProjectConfigurator"
+            id="org.eclipse.alfresco.publisher.core.configurator.alfrescoProjectConfigurator">
+      </configurator>
+   </extension>
+   <extension
+         point="org.eclipse.m2e.core.lifecycleMappingMetadataSource">
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               id="org.eclipse.alfresco.publisher.core.views.AlfrescoAMPView"
+               ratio="0.5"
+               relationship="right"
+               relative="org.eclipse.ui.views.TaskList">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            id="org.eclipse.alfresco.publisher.core.commands.category"
+            name="Alfresco">
+      </category>
+      <command
+            categoryId="org.eclipse.alfresco.publisher.core.commands.category"
+            id="org.eclipse.alfresco.publisher.core.commands.alfrescoDeployCommand"
+            name="Alfresco Command">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="org.eclipse.alfresco.publisher.core.handlers.AlfrescoDeployHandler"
+            commandId="org.eclipse.alfresco.publisher.core.commands.alfrescoDeployCommand">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.eclipse.alfresco.publisher.core.commands.alfrescoDeployCommand"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+6">
+      </key>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+         <menu
+               id="org.eclipse.alfresco.publisher.core.menus.alfrescoMenu"
+               label="Alfresco"
+               mnemonic="M">
+            <command
+                  commandId="org.eclipse.alfresco.publisher.core.commands.alfrescoDeployCommand"
+                  id="org.eclipse.alfresco.publisher.core.menus.sampleCommand"
+                  mnemonic="S">
+            </command>
+         </menu>
+      </menuContribution>
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="org.eclipse.alfresco.publisher.core.toolbars.sampleToolbar">
+            <command
+                  commandId="org.eclipse.alfresco.publisher.core.commands.alfrescoDeployCommand"
+                  icon="icons/sample.gif"
+                  id="org.eclipse.alfresco.publisher.core.toolbars.sampleCommand"
+                  tooltip="Deploy to server">
+            </command>
+         </toolbar>
+      </menuContribution>
    </extension>
 
 </plugin>
