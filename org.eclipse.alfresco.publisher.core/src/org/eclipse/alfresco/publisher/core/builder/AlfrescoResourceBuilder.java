@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 
@@ -29,6 +30,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
 import org.osgi.service.prefs.Preferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,16 +113,30 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 					.getFile("target/deployed.log").getLocation().toFile(),
 					true);
 			logPrinter = new PrintWriter(fileWriter);
+			logPrinter.append("-------- ").append(new Date().toString()).append(" ------- \n");
 
 			Preferences preferences = AlfrescoPreferenceHelper
 					.getProjectPreferences(getProject());
 			String mode = preferences.get("mode", "none");
+			
+			
 
 			Deployer deployer;
 			if ("Shared".equals(mode)) {
-				deployer = new SharedDeployer(preferences.get(
-						SHARED_ABSOLUTE_PATH, null), logPrinter);
+				String deployementRoot = preferences.get(
+						SHARED_ABSOLUTE_PATH, null);
+				if(deployementRoot==null) {
+					MessageDialog.openError(Display.getCurrent().getActiveShell(), "Preferences not set", "Shared root must be defined.");
+					return null;
+				}
+				deployer = new SharedDeployer(deployementRoot, logPrinter);
 			} else if ("Webapp".equals(mode)) {
+				String deploymentRoot = preferences.get(
+						WEBAPP_ABSOLUTE_PATH, null);
+				if(deploymentRoot==null) {
+					MessageDialog.openError(Display.getCurrent().getActiveShell(), "Preferences not set", "Webapp root must be defined.");
+					return null;
+				}
 				Properties fileMapping = new Properties();
 				String path = preferences.get(AMP_RELATIVE_PATH, null)
 						+ "/file-mapping.properties";
@@ -133,8 +150,7 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 				} catch (IOException e) {
 					throw new CoreException(Status.CANCEL_STATUS);
 				}
-				deployer = new WebappDeployer(preferences.get(
-						WEBAPP_ABSOLUTE_PATH, null), preferences.get(
+				deployer = new WebappDeployer(deploymentRoot, preferences.get(
 						AMP_RELATIVE_PATH, null), fileMapping, logPrinter);
 			} else {
 				return projects;
