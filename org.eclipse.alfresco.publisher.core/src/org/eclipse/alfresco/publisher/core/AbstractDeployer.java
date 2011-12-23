@@ -92,6 +92,10 @@ public abstract class AbstractDeployer implements Deployer {
 	}
 
 	public void removeResource(IResource resource) {
+		
+		A blinder
+		
+		
 		ResourceCommand toRemove = getFile(resource);
 		if (toRemove == null) {
 			System.err.println("Could not remove: " + resource);
