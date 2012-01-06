@@ -21,9 +21,9 @@ public class WebappDeployer extends AbstractDeployer {
 	 * @param fileMapping
 	 * @param printWriter
 	 */
-	public WebappDeployer(String webappPath, String ampRelativePath,String ampLibFileName,
+	public WebappDeployer(String webappPath, boolean ignoreClasses, String ampRelativePath,String ampLibFileName,
 			Properties fileMapping, PrintWriter printWriter) {
-		super(ampLibFileName, printWriter);
+		super(ampLibFileName,ignoreClasses, printWriter);
 		this.webappPath = webappPath;
 		this.ampRelativePath = ampRelativePath;
 		this.fileMapping = fileMapping;

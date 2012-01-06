@@ -1,35 +1,15 @@
 package org.eclipse.alfresco.publisher.core;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
-
-import javax.imageio.stream.FileImageInputStream;
 
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.ui.jarpackager.JarPackageData;
-import org.eclipse.jdt.ui.jarpackager.JarWriter3;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
@@ -44,8 +24,9 @@ public abstract class AbstractDeployer implements Deployer {
 
 	private Map<String, ResourceCommand> delayedJarResourceCommands = new HashMap<String, ResourceCommand>();
 	private String ampLibFileName;
+	private boolean ignoreClasses;
 
-	public AbstractDeployer(String ampLibFileName, PrintWriter printWriter) {
+	public AbstractDeployer(String ampLibFileName, boolean ignoreClasses, PrintWriter printWriter) {
 		this.logPrinter = printWriter;
 		this.ampLibFileName = ampLibFileName;
 	}
@@ -69,17 +50,19 @@ public abstract class AbstractDeployer implements Deployer {
 		resourceCommand.setSrcRelative(pathRelativeToClasses);
 
 		if (resource.getName().endsWith(".class")) {
-			resourceCommand.setType("JAR");
+			if (ignoreClasses) {
+				return null;
+			}
 
-		} else {
-			resourceCommand.setType("CLS");
-
-			File file = new File(getClasses(),
-					getPathRelativeToClasses(resource.getProjectRelativePath()
-							.toString()));
-
-			resourceCommand.setDst(file);
 		}
+
+		resourceCommand.setType("CLS");
+
+		File file = new File(getClasses(), getPathRelativeToClasses(resource
+				.getProjectRelativePath().toString()));
+
+		resourceCommand.setDst(file);
+
 		return resourceCommand;
 	}
 

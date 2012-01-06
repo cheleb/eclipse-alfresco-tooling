@@ -27,7 +27,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
-import org.osgi.service.prefs.Preferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -222,7 +221,7 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 		}
 		String ampLibFilename = preferences.getAmpJarName();
 		String ampRelativePath = preferences.getTargetAmpLocation();
-		return new WebappDeployer(deploymentRoot, ampRelativePath,
+		return new WebappDeployer(deploymentRoot, preferences.ignoreClasses(), ampRelativePath,
 				ampLibFilename, fileMapping, logPrinter);
 
 	}
@@ -245,7 +244,7 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 			});
 			return null;
 		}
-		return new SharedDeployer(deployementRoot, ampLibFilename, logPrinter);
+		return new SharedDeployer(deployementRoot, preferences.ignoreClasses(), ampLibFilename, logPrinter);
 
 	}
 

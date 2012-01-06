@@ -13,8 +13,8 @@ public class SharedDeployer extends AbstractDeployer {
 	 * @param ampLibFileName
 	 * @param printWriter
 	 */
-	public SharedDeployer(String sharedPath, String ampLibFileName, PrintWriter printWriter) {
-		super(ampLibFileName, printWriter);
+	public SharedDeployer(String sharedPath, boolean ignoreClasses, String ampLibFileName, PrintWriter printWriter) {
+		super(ampLibFileName, ignoreClasses, printWriter);
 		this.sharedPath = sharedPath;
 	}
 

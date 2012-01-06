@@ -1,6 +1,5 @@
 package org.eclipse.alfresco.publisher.core.properties;
 
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -15,19 +14,18 @@ import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.osgi.service.prefs.BackingStoreException;
-import org.osgi.service.prefs.Preferences;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.layout.FillLayout;
 
 public class AlfrescoPropertyPage extends PropertyPage {
 

@@ -1,7 +1,6 @@
 package org.eclipse.alfresco.publisher.core;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IResource;
