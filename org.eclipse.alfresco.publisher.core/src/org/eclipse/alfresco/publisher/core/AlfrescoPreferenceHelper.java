@@ -72,8 +72,7 @@ public class AlfrescoPreferenceHelper {
 
 	
 	public String getServerReloadWebscriptURL() {
-		// TODO Auto-generated method stub
-		return null;
+		return getServerReloadWebscriptURL(getDeploymentMode());
 	}
 	
 	public String getServerReloadWebscriptURL(String mode) {
