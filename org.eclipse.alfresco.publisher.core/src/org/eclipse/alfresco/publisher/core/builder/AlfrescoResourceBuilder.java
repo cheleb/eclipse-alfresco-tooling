@@ -1,24 +1,20 @@
 package org.eclipse.alfresco.publisher.core.builder;
 
-import static org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper.AMP_RELATIVE_PATH;
-import static org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper.SHARED_ABSOLUTE_PATH;
-import static org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper.WEBAPP_ABSOLUTE_PATH;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.Deployer;
+import org.eclipse.alfresco.publisher.core.ResourceCommand;
 import org.eclipse.alfresco.publisher.core.SharedDeployer;
 import org.eclipse.alfresco.publisher.core.WebappDeployer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
@@ -27,7 +23,6 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -57,21 +52,30 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 		 */
 		public boolean visit(IResourceDelta delta) throws CoreException {
 			IResource resource = delta.getResource();
+
 			if (resource.getProjectRelativePath().toString()
 					.startsWith("target/")) {
-				switch (delta.getKind()) {
-				case IResourceDelta.ADDED:
-					// handle added resource
-					deployer.addResource(resource);
-					break;
-				case IResourceDelta.REMOVED:
-					deployer.removeResource(resource);
-					// FIXME should be enough return false;
-					break;
-				case IResourceDelta.CHANGED:
-					// handle changed resource
-					deployer.updateResource(resource);
-					break;
+
+				ResourceCommand resourceCommand = deployer.getResourceCommand(
+						resource, delta.getKind());
+				if (resourceCommand == null) {
+					LOGGER.warn("Could not resolve: " + resource);
+				} else {
+					switch (delta.getKind()) {
+					case IResourceDelta.ADDED:
+						// handle added resource
+						deployer.addResource(resourceCommand);
+						break;
+					case IResourceDelta.REMOVED:
+						deployer.removeResource(resourceCommand);
+						// FIXME should be enough return false plexus compiler
+						// limitation;
+						break;
+					case IResourceDelta.CHANGED:
+						// handle changed resource
+						deployer.updateResource(resourceCommand);
+						break;
+					}
 				}
 				// return true to continue visiting children.
 				return true;
@@ -108,51 +112,15 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 		IProject projects[] = new IProject[1];
 		projects[0] = getProject();
 		PrintWriter logPrinter = null;
+		IFile logFile = getProject().getFile("target/deployed.log");
 		try {
-			FileWriter fileWriter = new FileWriter(getProject()
-					.getFile("target/deployed.log").getLocation().toFile(),
-					true);
+			FileWriter fileWriter = new FileWriter(logFile.getLocation()
+					.toFile(), true);
 			logPrinter = new PrintWriter(fileWriter);
-			logPrinter.append("-------- ").append(new Date().toString()).append(" ------- \n");
 
-			Preferences preferences = AlfrescoPreferenceHelper
-					.getProjectPreferences(getProject());
-			String mode = preferences.get("mode", "none");
-			
-			
+			Deployer deployer = buildDeployer(projects, logPrinter);
 
-			Deployer deployer;
-			if ("Shared".equals(mode)) {
-				String deployementRoot = preferences.get(
-						SHARED_ABSOLUTE_PATH, null);
-				if(deployementRoot==null) {
-					MessageDialog.openError(Display.getCurrent().getActiveShell(), "Preferences not set", "Shared root must be defined.");
-					return null;
-				}
-				deployer = new SharedDeployer(deployementRoot, logPrinter);
-			} else if ("Webapp".equals(mode)) {
-				String deploymentRoot = preferences.get(
-						WEBAPP_ABSOLUTE_PATH, null);
-				if(deploymentRoot==null) {
-					MessageDialog.openError(Display.getCurrent().getActiveShell(), "Preferences not set", "Webapp root must be defined.");
-					return null;
-				}
-				Properties fileMapping = new Properties();
-				String path = preferences.get(AMP_RELATIVE_PATH, null)
-						+ "/file-mapping.properties";
-				try {
-					FileReader fileReader = new FileReader(getProject()
-							.getFile(new Path(path)).getLocation().toFile());
-					fileMapping.load(fileReader);
-					fileReader.close();
-				} catch (FileNotFoundException e) {
-					throw new CoreException(Status.CANCEL_STATUS);
-				} catch (IOException e) {
-					throw new CoreException(Status.CANCEL_STATUS);
-				}
-				deployer = new WebappDeployer(deploymentRoot, preferences.get(
-						AMP_RELATIVE_PATH, null), fileMapping, logPrinter);
-			} else {
+			if (deployer == null) {
 				return projects;
 			}
 
@@ -172,10 +140,123 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 		} finally {
 			if (logPrinter != null) {
 				logPrinter.close();
+				logFile.refreshLocal(IFile.DEPTH_ZERO, monitor);
 			}
 		}
 
 		return projects;
+	}
+
+	private Deployer buildDeployer(IProject[] projects, PrintWriter logPrinter)
+			throws CoreException {
+
+		AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(
+				getProject());
+		final String mode = preferences.getDeploymentMode();
+
+		Deployer deployer;
+		if ("Shared".equals(mode)) {
+			deployer = buildSharedDeployer(logPrinter, preferences);
+		} else if ("Webapp".equals(mode)) {
+			deployer = buildWebappDeployer(logPrinter, preferences);
+		} else {
+			Display.getDefault().asyncExec(new Runnable() {
+
+				@Override
+				public void run() {
+					MessageDialog.openError(Display.getDefault()
+							.getActiveShell(), "Preferences not set",
+							"Deployment mode root must be Shared or Webapp ( \""
+									+ mode + "\" is not valid )");
+
+				}
+			});
+			return null;
+		}
+		return deployer;
+	}
+
+	private Deployer buildWebappDeployer(PrintWriter logPrinter,
+			AlfrescoPreferenceHelper preferences) throws CoreException {
+
+		String webappName = preferences.getWebappName();
+
+		if (webappName == null) {
+			Display.getDefault().asyncExec(new Runnable() {
+
+				@Override
+				public void run() {
+					MessageDialog.openError(Display.getDefault()
+							.getActiveShell(), "Preferences not set",
+							"Webapp root must be defined.");
+
+				}
+			});
+			return null;
+		}
+		String deploymentRoot = preferences.getWebappAbsolutePath();
+		Properties fileMapping = new Properties();
+		String path = preferences.getTargetAmpLocation()
+				+ "/file-mapping.properties";
+
+		File fileMappingFile = getProject().getFile(new Path(path))
+				.getLocation().toFile();
+		boolean addDefault;
+		if (fileMappingFile.exists()) {
+			try {
+				FileReader fileReader = new FileReader(fileMappingFile);
+				fileMapping.load(fileReader);
+				fileReader.close();
+			} catch (FileNotFoundException e) {
+				throw new CoreException(Status.CANCEL_STATUS);
+			} catch (IOException e) {
+				throw new CoreException(Status.CANCEL_STATUS);
+			}
+			addDefault = "true".equals(fileMapping.getProperty(
+					"include.default", "true"));
+		} else {
+			addDefault = true;
+		}
+		if (addDefault) {
+			addDefaultMapping(fileMapping);
+		}
+		String ampLibFilename = preferences.getAmpJarName();
+		String ampRelativePath = preferences.getTargetAmpLocation();
+		return new WebappDeployer(deploymentRoot, ampRelativePath,
+				ampLibFilename, fileMapping, logPrinter);
+
+	}
+
+	private Deployer buildSharedDeployer(PrintWriter logPrinter,
+			AlfrescoPreferenceHelper preferences) {
+		String deployementRoot = null;
+		String ampLibFilename = preferences.getAmpJarName();
+		if (deployementRoot == null) {
+			Display.getDefault().asyncExec(new Runnable() {
+
+				@Override
+				public void run() {
+					MessageDialog.openError(Display.getDefault()
+							.getActiveShell(), "Preferences not set",
+							"Shared root must be defined.");
+					// TODO Auto-generated method stub
+
+				}
+			});
+			return null;
+		}
+		return new SharedDeployer(deployementRoot, ampLibFilename, logPrinter);
+
+	}
+
+	private void addDefaultMapping(Properties fileMapping) {
+		fileMapping.put("/config", "/WEB-INF/classes");
+		fileMapping.put("/lib", "/WEB-INF/lib");
+		fileMapping.put("/web/jsp", "/jsp");
+		fileMapping.put("/web/css", "/css");
+		fileMapping.put("/web/images", "/images");
+		fileMapping.put("/web/scripts", "/scripts");
+
 	}
 
 	protected void fullBuild(Deployer deployer, final IProgressMonitor monitor)
@@ -192,5 +273,6 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 
 		// the visitor does the work.
 		delta.accept(new SampleDeltaVisitor(deployer));
+
 	}
 }

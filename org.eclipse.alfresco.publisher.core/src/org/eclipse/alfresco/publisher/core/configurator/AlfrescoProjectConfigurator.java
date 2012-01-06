@@ -3,7 +3,9 @@ package org.eclipse.alfresco.publisher.core.configurator;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
+import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -50,18 +52,45 @@ public class AlfrescoProjectConfigurator extends AbstractProjectConfigurator {
 		String artifactId = mavenProject.getArtifactId();
 		String version = mavenProject.getVersion();
 
-		String ampPath = String.format("%s/%s-%s", targetDir, artifactId,
+		String ampFolderPath = String.format("%s/%s-%s", targetDir, artifactId,
 				version);
 
-		String resourceMap = getResourceMap(mavenProject);
+		String ampLibName = String.format("%s-%s.jar", artifactId, version);
+
+		
 
 		try {
 			//projectPreferences.sync();
-			projectPreferences.put("amp.relative.path", ampPath);
+			projectPreferences.put(AlfrescoPreferenceHelper.AMP_FOLDER_RELATIVE_PATH, ampFolderPath);
+			
+			projectPreferences.put(AlfrescoPreferenceHelper.AMP_LIB_FILENAME, ampLibName);
+		
+			
+			
 			projectPreferences.flush();
 		} catch (BackingStoreException e) {
 			LOGGER.error("Could not save preferences.", e);
 		}
+		
+		IProjectDescription description = project.getDescription();
+		ICommand[] buildSpec = description.getBuildSpec();
+		ICommand[] iCommands = new ICommand[buildSpec.length];
+		int j=0;
+		ICommand alfrescoCommand = null;
+		for (int i = 0; i < buildSpec.length; i++) {
+			ICommand iCommand = buildSpec[i];
+			if("org.eclipse.alfresco.publisher.core.alfrescoResourceBuilder".equals(iCommand.getBuilderName())) {
+				j=1;
+				alfrescoCommand = iCommand;
+			}else {
+				iCommands[i-j]=iCommand;
+			}
+		}
+		if(j>0) {
+			iCommands[iCommands.length-1]=alfrescoCommand;
+		}
+		description.setBuildSpec(iCommands);
+		project.setDescription(description, monitor);
 
 	}
 
@@ -70,7 +99,6 @@ public class AlfrescoProjectConfigurator extends AbstractProjectConfigurator {
 		for(Resource resource: mavenProject.getResources()) {
 			String targetPath = resource.getTargetPath();
 			boolean filtered = resource.isFiltering();
-			System.out.println(targetPath + " " + filtered);
 		}
 		return builder.toString();
 	}

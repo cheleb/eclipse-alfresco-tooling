@@ -52,10 +52,17 @@
             </separator>
          </menu>
          <action
-               class="org.eclipse.alfresco.publisher.core.popup.actions.Deploy"
+               class="org.eclipse.alfresco.publisher.core.popup.actions.DeployJar"
                enablesFor="1"
-               id="org.eclipse.alfresco.publisher.core.newAction"
-               label="Deploy"
+               id="org.eclipse.alfresco.publisher.core.action.deployJar"
+               label="Deploy Jar"
+               menubarPath="org.eclipse.alfresco.publisher.core.menu1/group1">
+         </action>
+          <action
+               class="org.eclipse.alfresco.publisher.core.popup.actions.DeployAmp"
+               enablesFor="1"
+               id="org.eclipse.alfresco.publisher.core.action.deployAmp"
+               label="Deploy AMP"
                menubarPath="org.eclipse.alfresco.publisher.core.menu1/group1">
          </action>
          <filter
@@ -78,7 +85,7 @@
    <extension
          point="org.eclipse.ui.propertyPages">
       <page
-            class="org.eclipse.alfresco.publisher.core.preferences.WorkbenchPreference"
+            class="org.eclipse.alfresco.publisher.core.properties.WorkbenchPreference"
             id="alfresco"
             name="Alfresco">
              <enabledWhen>

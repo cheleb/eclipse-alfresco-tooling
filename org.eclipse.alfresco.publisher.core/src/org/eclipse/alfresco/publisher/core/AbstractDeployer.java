@@ -1,11 +1,35 @@
 package org.eclipse.alfresco.publisher.core;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
+
+import javax.imageio.stream.FileImageInputStream;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.IOUtil;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.ui.jarpackager.JarPackageData;
+import org.eclipse.jdt.ui.jarpackager.JarWriter3;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
@@ -16,40 +40,81 @@ public abstract class AbstractDeployer implements Deployer {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(AbstractDeployer.class);
 	private PrintWriter logPrinter;
+	private boolean dateLogged;
 
-	public AbstractDeployer(PrintWriter printWriter) {
+	private Map<String, ResourceCommand> delayedJarResourceCommands = new HashMap<String, ResourceCommand>();
+	private String ampLibFileName;
+
+	public AbstractDeployer(String ampLibFileName, PrintWriter printWriter) {
 		this.logPrinter = printWriter;
+		this.ampLibFileName = ampLibFileName;
 	}
 
-	protected ResourceCommand getDeployedClassPathResource(IResource resource) {
+	@Override
+	public Map<String, ResourceCommand> getDelayedJarResourceCommands() {
+		return delayedJarResourceCommands;
+	}
 
-		ResourceCommand resourceCommand = new ResourceCommand();
-		resourceCommand.setResource(resource);
-		resourceCommand.setType("CLS");
-		resourceCommand.setSrc(resource.getLocation().toFile());
+	protected ResourceCommand getDeployedClassPathResource(IResource resource,
+			int kind) {
+
+		ResourceCommand resourceCommand = buildResourceCommand(resource, kind);
+
+		if (resourceCommand == null) {
+			return null;
+		}
+
 		String pathRelativeToClasses = getPathRelativeToClasses(resource
 				.getProjectRelativePath().toString());
-		resourceCommand.setSrcLog(pathRelativeToClasses);
+		resourceCommand.setSrcRelative(pathRelativeToClasses);
 
-		File file = new File(getClasses(), getPathRelativeToClasses(resource
-				.getProjectRelativePath().toString()));
+		if (resource.getName().endsWith(".class")) {
+			resourceCommand.setType("JAR");
 
-		resourceCommand.setDst(file);
+		} else {
+			resourceCommand.setType("CLS");
 
+			File file = new File(getClasses(),
+					getPathRelativeToClasses(resource.getProjectRelativePath()
+							.toString()));
+
+			resourceCommand.setDst(file);
+		}
+		return resourceCommand;
+	}
+
+	protected ResourceCommand buildResourceCommand(IResource resource, int kind) {
+		ResourceCommand resourceCommand = new ResourceCommand();
+		resourceCommand.setResource(resource);
+		resourceCommand.setSrc(resource.getLocation().toFile());
+
+		switch (kind) {
+		case IResourceDelta.ADDED:
+			resourceCommand.setAction(kind);
+			break;
+		case IResourceDelta.REMOVED:
+			resourceCommand.setAction(kind);
+			break;
+		case IResourceDelta.CHANGED:
+			resourceCommand.setAction(kind);
+			break;
+		default:
+			return null;
+		}
 		return resourceCommand;
 	}
 
 	protected boolean classPathResource(IResource resource) {
 
 		return resource.getProjectRelativePath().toString()
-				.startsWith("target/classes");
+				.startsWith("target/classes/");
 	}
 
 	public String getPathRelativeToClasses(String projectRelativePath) {
 		String ret;
-		int i = projectRelativePath.indexOf("target/classes");
+		int i = projectRelativePath.indexOf("target/classes/");
 		if (i == 0) {
-			ret = projectRelativePath.substring("target/classes".length());
+			ret = projectRelativePath.substring("target/classes/".length());
 		} else {
 			throw new RuntimeException("Not classpath: " + projectRelativePath);
 		}
@@ -57,27 +122,26 @@ public abstract class AbstractDeployer implements Deployer {
 	}
 
 	@Override
-	public ResourceCommand getFile(IResource resource) {
+	public ResourceCommand getResourceCommand(IResource resource, int kind) {
 
 		if (classPathResource(resource)) {
 
-			return getDeployedClassPathResource(resource);
+			return getDeployedClassPathResource(resource, kind);
 		}
 		return null;
 	}
 
-	public void addResource(IResource resource) {
-		ResourceCommand toCreate = getFile(resource);
-		if (toCreate == null) {
-			System.err.println("Could not deploy: " + resource);
+	public void addResource(ResourceCommand toCreate) {
+		if ("JAR".equals(toCreate.getType())) {
+			delayedJarResourceCommands.put(toCreate.getSrcRelative(), toCreate);
 		} else {
-
-			switch (resource.getType()) {
+			switch (toCreate.getResource().getType()) {
 			case IResource.FOLDER:
 				toCreate.getDst().mkdir();
 				break;
 			case IResource.FILE:
 				try {
+					log("CP", toCreate);
 					FileUtils.copyFile(toCreate.getSrc(), toCreate.getDst());
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
@@ -88,17 +152,11 @@ public abstract class AbstractDeployer implements Deployer {
 				break;
 			}
 		}
-
 	}
 
-	public void removeResource(IResource resource) {
-		
-		A blinder
-		
-		
-		ResourceCommand toRemove = getFile(resource);
-		if (toRemove == null) {
-			System.err.println("Could not remove: " + resource);
+	public void removeResource(ResourceCommand toRemove) {
+		if ("JAR".equals(toRemove.getType())) {
+			delayedJarResourceCommands.put(toRemove.getSrcRelative(), toRemove);
 		} else {
 			if (toRemove.getDst().getAbsolutePath().startsWith(getRoot())) {
 				if (toRemove.getDst().isDirectory()) {
@@ -111,6 +169,7 @@ public abstract class AbstractDeployer implements Deployer {
 					}
 				}
 				if (toRemove.getDst().isFile()) {
+					log("RM", toRemove);
 					toRemove.getDst().delete();
 				}
 			} else {
@@ -118,22 +177,30 @@ public abstract class AbstractDeployer implements Deployer {
 						"Oullla", "Outside root dir : " + toRemove.getDst());
 				LOGGER.error("Outside root dir : " + toRemove.getDst());
 			}
-
 		}
 
 	}
 
-	private void log(String what, ResourceCommand toRemove) {
+	private void log(String what, ResourceCommand command) {
+		if (!dateLogged) {
+			dateLogged = true;
+			logPrinter.append("-------- ").append(new Date().toString())
+					.append(" ------- \n");
+		}
 		logPrinter.append(what).append(" ");
-		logPrinter.append(toRemove.getType()).append(" ");
-		logPrinter.append(toRemove.getSrcLog());
-		logPrinter.append(" -> ");
+		logPrinter.append(command.getType()).append(" ");
+		logPrinter.append(command.getSrcRelative());
+		logPrinter.append(" -> " + command.getDst());
 		logPrinter.append("\n");
 	}
 
 	void copyResource(ResourceCommand c) {
 		try {
 			log("CP", c);
+			File parent = c.getDst().getParentFile();
+			if (parent.mkdirs()) {
+				LOGGER.debug("mkdir " + c.getDst());
+			}
 			FileUtils.copyFile(c.getSrc(), c.getDst());
 		} catch (IOException e) {
 			LOGGER.error("Fail deploying: ", e);
@@ -141,22 +208,24 @@ public abstract class AbstractDeployer implements Deployer {
 
 	}
 
-	public void updateResource(IResource resource) {
-		ResourceCommand toUpdate = getFile(resource);
-		if (toUpdate == null) {
-			LOGGER.debug("Could not update: " + resource);
+	public void updateResource(ResourceCommand toUpdate) {
+		if ("JAR".equals(toUpdate.getType())) {
+			delayedJarResourceCommands.put(toUpdate.getSrcRelative(), toUpdate);
 		} else {
 			if (toUpdate.getDst().exists()) {
 				if (toUpdate.getDst().isFile()) {
 					copyResource(toUpdate);
 				}
 			} else {
-				System.err.println("Could not find: "
-						+ toUpdate.getDst().getAbsolutePath());
+				LOGGER.debug("Could update (not find): "
+						+ toUpdate.getDst().getAbsolutePath() + " ("
+						+ toUpdate.getDst().getAbsolutePath() + ")");
+				if (toUpdate.getDst().isFile()) {
+					copyResource(toUpdate);
+				}
 			}
-			System.out.println("Copy " + toUpdate.getDst().getAbsolutePath());
-
 		}
 	}
 
+	protected abstract File getLibFolder();
 }

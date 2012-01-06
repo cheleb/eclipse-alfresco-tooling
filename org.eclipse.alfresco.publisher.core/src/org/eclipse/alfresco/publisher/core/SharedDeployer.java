@@ -7,24 +7,31 @@ public class SharedDeployer extends AbstractDeployer {
 
 	private final String sharedPath;
 
-	public SharedDeployer(String sharedPath, PrintWriter printWriter) {
-		super(printWriter);
+	/**
+	 * Constructor.
+	 * @param sharedPath
+	 * @param ampLibFileName
+	 * @param printWriter
+	 */
+	public SharedDeployer(String sharedPath, String ampLibFileName, PrintWriter printWriter) {
+		super(ampLibFileName, printWriter);
 		this.sharedPath = sharedPath;
 	}
 
-	
 	@Override
 	public File getClasses() {
-		
+
 		return new File(sharedPath, "classes");
 	}
-
 
 	@Override
 	public String getRoot() {
 		return sharedPath;
 	}
 
-	
+	@Override
+	protected File getLibFolder() {
+		return new File(sharedPath, "lib");
+	}
 
 }

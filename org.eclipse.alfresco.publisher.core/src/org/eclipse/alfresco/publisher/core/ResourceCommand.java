@@ -5,17 +5,18 @@ import java.io.File;
 import org.eclipse.core.resources.IResource;
 
 public class ResourceCommand {
-	
 
+	public String type;
 	private File src;
 	private File dst;
-	
+
 	private IResource resource;
-	
-	private String srcLog;
-	
+
+	private String srcRelative;
+
 	private String dstLog;
-	
+	private int action;
+
 	public File getSrc() {
 		return src;
 	}
@@ -32,12 +33,12 @@ public class ResourceCommand {
 		this.dst = dst;
 	}
 
-	public String getSrcLog() {
-		return srcLog;
+	public String getSrcRelative() {
+		return srcRelative;
 	}
 
-	public void setSrcLog(String srcLog) {
-		this.srcLog = srcLog;
+	public void setSrcRelative(String srcLog) {
+		this.srcRelative = srcLog;
 	}
 
 	public String getDstLog() {
@@ -47,7 +48,6 @@ public class ResourceCommand {
 	public void setDstLog(String dstLog) {
 		this.dstLog = dstLog;
 	}
-
 
 	public String getType() {
 		return type;
@@ -65,8 +65,16 @@ public class ResourceCommand {
 		this.resource = resource;
 	}
 
-	
-	
-	public String type;
+	public void setAction(int action) {
+		this.action = action;
+	}
 
+	public int getAction() {
+		return action;
+	}
+
+	@Override
+	public String toString() {
+		return getType() + " " + getAction() + " " + getSrcRelative();
+	}
 }

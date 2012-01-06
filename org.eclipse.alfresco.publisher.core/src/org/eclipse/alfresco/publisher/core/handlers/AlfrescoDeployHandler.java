@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,15 +23,25 @@ import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
+import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
+import org.eclipse.alfresco.publisher.core.ServerHelper;
+import org.eclipse.alfresco.publisher.core.builder.AlfrescoNature;
 import org.eclipse.alfresco.publisher.core.builder.AlfrescoResourceBuilder;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.equinox.security.storage.StorageException;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
+import org.osgi.service.prefs.Preferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,11 +52,10 @@ import org.slf4j.LoggerFactory;
  * @see org.eclipse.core.commands.AbstractHandler
  */
 public class AlfrescoDeployHandler extends AbstractHandler {
-	
+
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(AlfrescoDeployHandler.class);
 
-	
 	/**
 	 * The constructor.
 	 */
@@ -66,67 +76,52 @@ public class AlfrescoDeployHandler extends AbstractHandler {
 		if (editorInput instanceof IFileEditorInput) {
 			IFileEditorInput fileEditorInput = (IFileEditorInput) editorInput;
 			IProject project = fileEditorInput.getFile().getProject();
-			System.out.println(project.getName());
-			reload();
+			try {
+				if (project.hasNature(AlfrescoNature.NATURE_ID)) {
+					AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(
+							project);
+					final String login = preferences.getServerLogin();
+					final String password;
+					try {
+						password = AlfrescoPreferenceHelper.getPassword(project
+								.getName());
+					} catch (StorageException e) {
+						MessageDialog.openError(window.getShell(), "Error",
+								e.getMessage());
+						return null;
+					}
+					final String url = preferences.getServerReloadWebscriptURL();
 
+					IRunnableWithProgress iRunnableWithProgress = new IRunnableWithProgress() {
+
+						@Override
+						public void run(IProgressMonitor monitor)
+								throws InvocationTargetException,
+								InterruptedException {
+							monitor.beginTask("Reloading", 2);
+
+							ServerHelper.reload(url, login, password, monitor);
+
+						}
+					};
+
+					try {
+						new ProgressMonitorDialog(window.getShell()).run(true,
+								true, iRunnableWithProgress);
+					} catch (InvocationTargetException e) {
+						LOGGER.error("", e);
+					} catch (InterruptedException e) {
+						LOGGER.error("", e);
+					}
+
+				} else {
+					LOGGER.debug("Not an alfresco project");
+				}
+			} catch (CoreException e) {
+				MessageDialog.openError(window.getShell(), "Error",
+						e.getMessage());
+			}
 		}
 		return null;
-	}
-
-	private void reload() {
-		HttpHost targetHost = new HttpHost("localhost", 8280, "http");
-
-		DefaultHttpClient httpclient = new DefaultHttpClient();
-
-		httpclient.getCredentialsProvider().setCredentials(
-				new AuthScope(targetHost.getHostName(), targetHost.getPort()),
-				new UsernamePasswordCredentials("admin", "admin"));
-
-		// Create AuthCache instance
-		AuthCache authCache = new BasicAuthCache();
-		// Generate BASIC scheme object and add it to the local auth cache
-		BasicScheme basicAuth = new BasicScheme();
-		authCache.put(targetHost, basicAuth);
-
-		// Add AuthCache to the execution context
-		BasicHttpContext localcontext = new BasicHttpContext();
-		localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
-
-		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
-		formparams.add(new BasicNameValuePair("reset", "on"));
-		formparams.add(new BasicNameValuePair("submit", "Refresh Web Scripts"));
-		HttpPost httpPost = new HttpPost(
-				"http://localhost:8280/share/page/index");
-
-		BufferedReader bufferedReader = null;
-		try {
-			UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams,
-					"UTF-8");
-			httpPost.setEntity(entity);
-			HttpResponse httpResponse = httpclient.execute(httpPost);
-			System.out.println(httpResponse.getStatusLine());
-			InputStream content = httpResponse.getEntity().getContent();
-			bufferedReader = new BufferedReader(new InputStreamReader(content));
-			String line;
-			while ((line = bufferedReader.readLine()) != null) {
-				System.out.println(line);
-			}
-			bufferedReader.close();
-			// MessageDialog.openInformation(
-			// window.getShell(),
-			// "Maven Integration for Eclipse Settings",
-			// "Hello, Eclipse world");
-		} catch (ClientProtocolException e) {
-			LOGGER.error("", e);
-		} catch (IOException e) {
-			LOGGER.error("", e);
-		} finally {
-			try {
-				if (bufferedReader != null)
-					bufferedReader.close();
-			} catch (IOException e) {
-				LOGGER.error("", e);
-			}
-		}
 	}
 }

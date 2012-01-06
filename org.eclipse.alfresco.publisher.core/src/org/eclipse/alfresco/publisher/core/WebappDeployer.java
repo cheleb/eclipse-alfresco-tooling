@@ -12,48 +12,55 @@ public class WebappDeployer extends AbstractDeployer {
 	private final String webappPath;
 	private String ampRelativePath;
 	private Properties fileMapping;
-	
 
-	public WebappDeployer(String webappPath, String ampRelativePath,
+	/**
+	 * Constructor
+	 * @param webappPath
+	 * @param ampRelativePath
+	 * @param ampLibFileName
+	 * @param fileMapping
+	 * @param printWriter
+	 */
+	public WebappDeployer(String webappPath, String ampRelativePath,String ampLibFileName,
 			Properties fileMapping, PrintWriter printWriter) {
-		super(printWriter);
+		super(ampLibFileName, printWriter);
 		this.webappPath = webappPath;
 		this.ampRelativePath = ampRelativePath;
 		this.fileMapping = fileMapping;
-	
+
 	}
 
 	@Override
-	public ResourceCommand getFile(IResource resource) {
-		ResourceCommand file = super.getFile(resource);
+	public ResourceCommand getResourceCommand(IResource resource, int kind) {
+		ResourceCommand file = super.getResourceCommand(resource, kind);
 		if (file == null) {
-			file = getDeployedResource(resource);
+			file = getDeployedResource(resource, kind);
 		}
 		return file;
 	}
 
-	private ResourceCommand getDeployedResource(IResource resource) {
+	private ResourceCommand getDeployedResource(IResource resource, int kind) {
 		String path = resource.getProjectRelativePath().toString();
 
 		if (path.startsWith(ampRelativePath)) {
-			ResourceCommand resourceCommand = new ResourceCommand();
+			ResourceCommand resourceCommand = buildResourceCommand(resource,
+					kind);
 			resourceCommand.setType("RES");
-			resourceCommand.setResource(resource);
-			resourceCommand.setSrc(resource.getLocation().toFile());
-			System.out.println(path);
+
 			path = path.substring(ampRelativePath.length());
-			resourceCommand.setSrcLog(path);
+			resourceCommand.setSrcRelative(path);
 			for (Entry<Object, Object> entry : fileMapping.entrySet()) {
 				String key = (String) entry.getKey();
 				String value = (String) entry.getValue();
 				if (path.startsWith(key)) {
 					path = path.replaceFirst(key, value);
-					System.out.println(path);
 					break;
 				}
 			}
+			if ("/file-mapping.properties".equals(path))
+				return null;
 			resourceCommand.setDst(new File(webappPath, path));
-			return resourceCommand; 
+			return resourceCommand;
 		}
 		return null;
 	}
@@ -67,6 +74,11 @@ public class WebappDeployer extends AbstractDeployer {
 	@Override
 	public String getRoot() {
 		return webappPath;
+	}
+
+	@Override
+	protected File getLibFolder() {
+		return new File(webappPath, "WEB-INF/lib");
 	}
 
 }

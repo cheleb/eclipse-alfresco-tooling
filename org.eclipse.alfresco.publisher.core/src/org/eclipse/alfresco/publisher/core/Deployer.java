@@ -1,22 +1,28 @@
 package org.eclipse.alfresco.publisher.core;
 
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.resources.IResource;
 
 public interface Deployer {
 	
-	public ResourceCommand getFile(IResource resource);
+	public ResourceCommand getResourceCommand(IResource resource, int kind);
 	
 	public File getClasses();
 	
 	public String getPathRelativeToClasses(String projectRelativePath);
 
-	public void addResource(IResource resource);
+	public void addResource(ResourceCommand resourceCommand);
 
-	public void removeResource(IResource resource);
+	public void removeResource(ResourceCommand resourceCommand);
 
-	public void updateResource(IResource resource);
+	public void updateResource(ResourceCommand resource);
 	
 	public String getRoot();
+
+	public Map<String, ResourceCommand> getDelayedJarResourceCommands();
+
+	
 }
