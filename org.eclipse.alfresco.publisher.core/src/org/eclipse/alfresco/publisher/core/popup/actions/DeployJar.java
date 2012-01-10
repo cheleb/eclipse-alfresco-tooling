@@ -34,5 +34,10 @@ public class DeployJar extends AlfrescoDeploy {
 	protected String getGoals() {
 		return "package";
 	}
+
+	@Override
+	protected boolean shoulDeactivateIncrementalDeployement() {
+		return false;
+	}
 	
 }

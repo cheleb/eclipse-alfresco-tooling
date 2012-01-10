@@ -109,7 +109,14 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 			throws CoreException {
 
 		IProject projects[] = new IProject[1];
-		projects[0] = getProject();
+		IProject project = getProject();
+		projects[0] = project;
+		
+		AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(project);
+		if(!preferences.isIncrementalDeploy()) {
+			return projects;
+		}
+		
 		PrintWriter logPrinter = null;
 		IFile logFile = getProject().getFile("target/deployed.log");
 		try {

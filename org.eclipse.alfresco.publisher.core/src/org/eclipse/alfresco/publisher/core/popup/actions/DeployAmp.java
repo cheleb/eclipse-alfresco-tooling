@@ -78,4 +78,9 @@ public class DeployAmp extends AlfrescoDeploy {
 		return "package -Pamp";
 	}
 
+	@Override
+	protected boolean shoulDeactivateIncrementalDeployement() {
+		return true;
+	}
+
 }

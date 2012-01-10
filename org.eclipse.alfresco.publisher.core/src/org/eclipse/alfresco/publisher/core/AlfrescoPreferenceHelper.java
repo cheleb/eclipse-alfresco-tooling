@@ -34,6 +34,8 @@ public class AlfrescoPreferenceHelper {
 
 	private static final String DEPLOYMENT_MODE = "deployment.mode";
 
+	private static final String INCREMENTAL_DEPLOY = "incremental.deploy";
+
 	private Preferences preference;
 
 	private IProject project;
@@ -207,6 +209,16 @@ public class AlfrescoPreferenceHelper {
 	public boolean ignoreClasses() {
 		// TODO Auto-generated method stub
 		return true;
+	}
+
+	public void setIncrementalDeploy(boolean selection) {
+		preference.putBoolean(AlfrescoPreferenceHelper.INCREMENTAL_DEPLOY , selection);
+		
+	}
+
+	public boolean isIncrementalDeploy() {
+		
+		return preference.getBoolean(AlfrescoPreferenceHelper.INCREMENTAL_DEPLOY, false);
 	}
 
 	

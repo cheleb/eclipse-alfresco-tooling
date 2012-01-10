@@ -6,7 +6,9 @@ import java.net.URL;
 import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.ServerHelper;
+import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -41,6 +43,7 @@ public class AlfrescoPropertyPage extends PropertyPage {
 	private Text login;
 	private Text password;
 	private Text webappNameText;
+	private Button btnDeployment;
 
 	private Group group;
 	private Text alfrescoHomeText;
@@ -54,7 +57,8 @@ public class AlfrescoPropertyPage extends PropertyPage {
 
 	private void addFirstSection(final Composite parent) {
 		IProject project = (IProject) getElement();
-		final AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(project);
+		final AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(
+				project);
 		mode = preferences.getDeploymentMode();
 		serverPath = preferences.getServerPath();
 		alfrescoHome = preferences.getAlfrescoHome();
@@ -72,7 +76,7 @@ public class AlfrescoPropertyPage extends PropertyPage {
 			alfrescoHomeText.setText(alfrescoHome);
 			alfrescoHomeText.setEditable(false);
 			alfrescoHomeText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER,
-					true, false, 3, 1));
+					true, false, 2, 1));
 		}
 		{
 			Button button = new Button(pathComposite, SWT.NONE);
@@ -95,10 +99,16 @@ public class AlfrescoPropertyPage extends PropertyPage {
 			button.setText("...");
 		}
 		new Label(pathComposite, SWT.NONE);
+		new Label(pathComposite, SWT.NONE);
+		new Label(pathComposite, SWT.NONE);
+		new Label(pathComposite, SWT.NONE);
 		{
-			Label lblDeploiemnt = new Label(pathComposite, SWT.NONE);
-			lblDeploiemnt.setText("Deployment");
+			btnDeployment = new Button(pathComposite, SWT.CHECK);
+            btnDeployment.setSelection(preferences.isIncrementalDeploy());
+			btnDeployment.setText("Deployment");
 		}
+		new Label(pathComposite, SWT.NONE);
+		new Label(pathComposite, SWT.NONE);
 		new Label(pathComposite, SWT.NONE);
 		{
 			Button btnShared = new Button(pathComposite, SWT.RADIO);
@@ -129,7 +139,6 @@ public class AlfrescoPropertyPage extends PropertyPage {
 			});
 		}
 		new Label(pathComposite, SWT.NONE);
-
 		new Label(pathComposite, SWT.NONE);
 		{
 			Label lblWebappName = new Label(pathComposite, SWT.NONE);
@@ -137,7 +146,6 @@ public class AlfrescoPropertyPage extends PropertyPage {
 					false, false, 1, 1));
 			lblWebappName.setText("Webapp name");
 		}
-		new Label(pathComposite, SWT.NONE);
 		{
 			webappNameText = new Text(pathComposite, SWT.BORDER);
 			webappNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER,
@@ -174,11 +182,9 @@ public class AlfrescoPropertyPage extends PropertyPage {
 				});
 			}
 		}
-		new Label(pathComposite, SWT.NONE);
 
 		lblServerPath = new Label(pathComposite, SWT.NONE);
 		lblServerPath.setText("Server Path:");
-		new Label(pathComposite, SWT.NONE);
 
 		// Path text field
 		pathValueText = new Text(composite, SWT.WRAP | SWT.READ_ONLY);
@@ -193,17 +199,15 @@ public class AlfrescoPropertyPage extends PropertyPage {
 
 		Button btnNewButton = new Button(pathComposite, SWT.NONE);
 		btnNewButton.setText("...");
-		new Label(pathComposite, SWT.NONE);
 		{
 			Label lblServerUrl = new Label(pathComposite, SWT.NONE);
 			lblServerUrl.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER,
 					false, false, 1, 1));
 			lblServerUrl.setText("Server URL");
 		}
-		new Label(pathComposite, SWT.NONE);
 		urlText = new Text(pathComposite, SWT.BORDER);
 		urlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false,
-				4, 1));
+				3, 1));
 		{
 			String urlSaved = preferences.getServerURL();
 			if (urlSaved != null) {
@@ -217,7 +221,6 @@ public class AlfrescoPropertyPage extends PropertyPage {
 					false, 1, 1));
 			lblLogin.setText("Login");
 		}
-		new Label(pathComposite, SWT.NONE);
 		login = new Text(pathComposite, SWT.BORDER);
 		login.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2,
 				1));
@@ -236,9 +239,10 @@ public class AlfrescoPropertyPage extends PropertyPage {
 			btnTestConnection.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					
-					String reloadURL = preferences.getServerReloadWebscriptURL(mode);
-					
+
+					String reloadURL = preferences
+							.getServerReloadWebscriptURL(mode);
+
 					if (ServerHelper.reload(reloadURL, login.getText(),
 							password.getText(), new NullProgressMonitor())) {
 						MessageDialog.openInformation(getShell(), "Success",
@@ -250,19 +254,16 @@ public class AlfrescoPropertyPage extends PropertyPage {
 				}
 			});
 		}
-		new Label(pathComposite, SWT.NONE);
 		{
 			Label lblPassword = new Label(pathComposite, SWT.NONE);
 			lblPassword.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER,
 					false, false, 1, 1));
 			lblPassword.setText("Password");
 		}
-		new Label(pathComposite, SWT.NONE);
 		password = new Text(pathComposite, SWT.BORDER | SWT.PASSWORD);
 		password.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false,
 				2, 1));
 		{
-			new Label(pathComposite, SWT.NONE);
 			try {
 				String pwd = AlfrescoPreferenceHelper.getPassword(project
 						.getName());
@@ -327,7 +328,7 @@ public class AlfrescoPropertyPage extends PropertyPage {
 	private Composite createDefaultComposite(Composite parent) {
 		pathComposite = new Composite(parent, SWT.NULL);
 		GridLayout gl_pathComposite = new GridLayout();
-		gl_pathComposite.numColumns = 6;
+		gl_pathComposite.numColumns = 4;
 		pathComposite.setLayout(gl_pathComposite);
 
 		GridData gd_pathComposite = new GridData();
@@ -377,13 +378,14 @@ public class AlfrescoPropertyPage extends PropertyPage {
 						password.getText());
 			}
 
-		
 			if (errorMessage.length() > 0) {
 				setErrorMessage(errorMessage.toString());
 				return false;
 			}
 
 			preferences.flush();
+
+			preferences.setIncrementalDeploy(btnDeployment.getSelection());
 
 		} catch (BackingStoreException e) {
 			// TODO Auto-generated catch block
@@ -399,5 +401,4 @@ public class AlfrescoPropertyPage extends PropertyPage {
 		}
 		return true;
 	}
-
 }

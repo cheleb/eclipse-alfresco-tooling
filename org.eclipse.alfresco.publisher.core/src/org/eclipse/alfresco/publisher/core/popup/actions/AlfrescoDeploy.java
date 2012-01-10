@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -45,17 +46,17 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
+import org.osgi.service.prefs.BackingStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(AlfrescoDeploy.class);
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(AlfrescoDeploy.class);
 
 	private Shell shell;
 	private ISelection selection;
-
-	
 
 	/**
 	 * @see IObjectActionDelegate#setActivePart(IAction, IWorkbenchPart)
@@ -79,12 +80,8 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 			return;
 		}
 
-		final AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(project);
-
-		
-		
-
-		
+		final AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(
+				project);
 
 		IRunnableWithProgress iRunnableWithProgress = new IRunnableWithProgress() {
 
@@ -93,7 +90,15 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 					throws InvocationTargetException, InterruptedException {
 				monitor.beginTask("Reloading", 4);
 
+				boolean deploymentIncrematalCanceled = shoulDeactivateIncrementalDeployement()
+						&& preferences.isIncrementalDeploy();
+
 				try {
+					if (deploymentIncrematalCanceled) {
+						preferences.setIncrementalDeploy(false);
+						preferences.flush();
+					}
+
 					monitor.subTask("Stopping server");
 					stopServer(preferences);
 					monitor.worked(1);
@@ -107,8 +112,21 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 					startServer(preferences);
 					monitor.worked(1);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					throw new OperationCanceledException(
+							e.getLocalizedMessage());
+				} catch (BackingStoreException e) {
+					throw new OperationCanceledException(
+							e.getLocalizedMessage());
+				} finally {
+					if (deploymentIncrematalCanceled) {
+						preferences.setIncrementalDeploy(true);
+						try {
+							preferences.flush();
+						} catch (BackingStoreException e) {
+							throw new OperationCanceledException(
+									e.getLocalizedMessage());
+						}
+					}
 				}
 
 			}
@@ -130,21 +148,22 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 		ProcessBuilder processBuilder = null;
 		Map<String, String> environment = null;
 		if (preferences.isAlfresco()) {
-			processBuilder = new ProcessBuilder("scripts/ctl.sh","start");
+			processBuilder = new ProcessBuilder("scripts/ctl.sh", "start");
 			environment = processBuilder.environment();
-			environment.put("CATALINA_PID", preferences.getServerPath() + "/temp/catalina.pid");
-//			processBuilder = new ProcessBuilder("bin/startup.sh");
-			//processBuilder.directory(new File(serverPath).getParentFile());
-			
+			environment.put("CATALINA_PID", preferences.getServerPath()
+					+ "/temp/catalina.pid");
+			// processBuilder = new ProcessBuilder("bin/startup.sh");
+			// processBuilder.directory(new File(serverPath).getParentFile());
+
 		} else {
 			processBuilder = new ProcessBuilder("bin/startup.sh");
 			environment = processBuilder.environment();
 			environment
-			.put("JAVA_OPTS",
-					"-XX:MaxPermSize=512m -Xms128m -Xmx768m -Dalfresco.home=/Applications/alfresco-4.0.b -Dcom.sun.management.jmxremote -Dsun.security.ssl.allowUnsafeRenegotiation=true");
+					.put("JAVA_OPTS",
+							"-XX:MaxPermSize=512m -Xms128m -Xmx768m -Dalfresco.home=/Applications/alfresco-4.0.b -Dcom.sun.management.jmxremote -Dsun.security.ssl.allowUnsafeRenegotiation=true");
 		}
 		processBuilder.directory(new File(preferences.getServerPath()));
-		
+
 		Process start = processBuilder.start();
 		try {
 			start.waitFor();
@@ -168,14 +187,14 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 	}
 
-	protected abstract void deploy(IProject project, AlfrescoPreferenceHelper preferences, IProgressMonitor monitor) throws IOException;
-	
-	
+	protected abstract void deploy(IProject project,
+			AlfrescoPreferenceHelper preferences, IProgressMonitor monitor)
+			throws IOException;
+
 	private void build(IProject project, final IProgressMonitor monitor) {
 
 		String goals = getGoals();
-		
-		
+
 		final ILaunchConfiguration launchConf = createLaunchConfiguration(
 				project, goals);
 
@@ -209,6 +228,8 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 		});
 
 	}
+
+	protected abstract boolean shoulDeactivateIncrementalDeployement();
 
 	protected abstract String getGoals();
 
@@ -306,23 +327,28 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 		// DebugUITools;
 	}
 
-	private void stopServer(AlfrescoPreferenceHelper preferences) throws IOException {
+	private void stopServer(AlfrescoPreferenceHelper preferences)
+			throws IOException {
 
 		ProcessBuilder processBuilder;
-		if(preferences.isAlfresco()) {
-			processBuilder = new ProcessBuilder("scripts/ctl.sh","stop");			
-		}else {
-			
-			processBuilder = new ProcessBuilder("java", "-cp",
+		if (preferences.isAlfresco()) {
+			processBuilder = new ProcessBuilder("scripts/ctl.sh", "stop");
+		} else {
+
+			processBuilder = new ProcessBuilder(
+					"java",
+					"-cp",
 					"bin/bootstrap.jar:bin/commons-daemon.jar:bin/tomcat-juli.jar",
 					"org.apache.catalina.startup.Bootstrap", "stop");
 		}
 		processBuilder.directory(new File(preferences.getServerPath()));
-		
+
 		Process start = processBuilder.start();
 		try {
 			int r = start.waitFor();
-			LOGGER.info("Stopping " + (preferences.isAlfresco()?"alfresco":"share") + ": " + (r==0?"OK":"ERROR"));
+			LOGGER.info("Stopping "
+					+ (preferences.isAlfresco() ? "alfresco" : "share") + ": "
+					+ (r == 0 ? "OK" : "ERROR"));
 		} catch (InterruptedException e) {
 			LOGGER.error(e.getLocalizedMessage(), e);
 		}
