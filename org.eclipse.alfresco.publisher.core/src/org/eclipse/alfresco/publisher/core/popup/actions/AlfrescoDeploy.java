@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
+import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -82,6 +83,8 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 		final AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(
 				project);
+		
+		final AlfrescoFileUtils alfrescoFileUtils = new AlfrescoFileUtils(preferences.getDeploymentAbsolutePath());
 
 		IRunnableWithProgress iRunnableWithProgress = new IRunnableWithProgress() {
 
@@ -106,7 +109,7 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 					build(project, monitor);
 					monitor.worked(1);
 					monitor.subTask("Deploy AMP");
-					deploy(project, preferences, monitor);
+					deploy(project, alfrescoFileUtils, preferences, monitor);
 					monitor.worked(1);
 					monitor.subTask("Starting server");
 					startServer(preferences);
@@ -188,7 +191,7 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 	}
 
 	protected abstract void deploy(IProject project,
-			AlfrescoPreferenceHelper preferences, IProgressMonitor monitor)
+			AlfrescoFileUtils alfrescoFileUtils, AlfrescoPreferenceHelper preferences, IProgressMonitor monitor)
 			throws IOException;
 
 	private void build(IProject project, final IProgressMonitor monitor) {

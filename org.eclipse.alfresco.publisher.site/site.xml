@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description url="http://github.com/cheleb/eclipse-alfresco-tooling/">
+      Maven Integration for Eclipse Extras
+   </description>
+   <feature url="features/org.eclipse.alfresco.publisher.feature_0.0.1.qualifier.jar" id="org.eclipse.alfresco.publisher.feature" version="0.0.1.qualifier">
+      <category name="alfresco"/>
+   </feature>
+   <category-def name="alfresco" label="Alfresco"/>
+</site>

@@ -23,12 +23,14 @@ public abstract class AbstractDeployer implements Deployer {
 	private boolean dateLogged;
 
 	private Map<String, ResourceCommand> delayedJarResourceCommands = new HashMap<String, ResourceCommand>();
-	private String ampLibFileName;
-	private boolean ignoreClasses;
 
-	public AbstractDeployer(String ampLibFileName, boolean ignoreClasses, PrintWriter printWriter) {
+	private boolean ignoreClasses;
+	private AlfrescoFileUtils fileHelper;
+
+	public AbstractDeployer(String deploymentRoot, boolean ignoreClasses,
+			PrintWriter printWriter) {
+		this.fileHelper = new AlfrescoFileUtils(deploymentRoot);
 		this.logPrinter = printWriter;
-		this.ampLibFileName = ampLibFileName;
 	}
 
 	@Override
@@ -141,24 +143,18 @@ public abstract class AbstractDeployer implements Deployer {
 		if ("JAR".equals(toRemove.getType())) {
 			delayedJarResourceCommands.put(toRemove.getSrcRelative(), toRemove);
 		} else {
-			if (toRemove.getDst().getAbsolutePath().startsWith(getRoot())) {
-				if (toRemove.getDst().isDirectory()) {
-					try {
-						log("RM", toRemove);
-						FileUtils.deleteDirectory(toRemove.getDst());
-					} catch (IOException e) {
-						LOGGER.error(
-								"Could not delete dir: " + toRemove.getDst(), e);
-					}
-				}
-				if (toRemove.getDst().isFile()) {
-					log("RM", toRemove);
-					toRemove.getDst().delete();
-				}
-			} else {
+
+			try {
+				log("RM", toRemove);
+				FileUtils.deleteDirectory(toRemove.getDst());
+				fileHelper.rm(toRemove.getDst());
+
+			} catch (IOException e) {
+				LOGGER.error("Could not delete dir: " + toRemove.getDst(), e);
+
 				MessageDialog.openError(Display.getDefault().getActiveShell(),
-						"Oullla", "Outside root dir : " + toRemove.getDst());
-				LOGGER.error("Outside root dir : " + toRemove.getDst());
+						"Oullla", "Error : " + e.getLocalizedMessage());
+				LOGGER.error("Error while deleting: " + toRemove.getDst(), e);
 			}
 		}
 

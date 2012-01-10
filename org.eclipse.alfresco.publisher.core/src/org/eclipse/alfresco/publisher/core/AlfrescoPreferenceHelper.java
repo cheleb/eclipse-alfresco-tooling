@@ -61,7 +61,7 @@ public class AlfrescoPreferenceHelper {
 			if (getWebappName() == null) {
 				return null;
 			}
-			return path(getServerPath(), "webapps" ,getWebappName());
+			return path(getServerPath(), "webapps", getWebappName());
 		}
 		return null;
 	}
@@ -71,25 +71,25 @@ public class AlfrescoPreferenceHelper {
 	}
 
 	
-	public String getServerReloadWebscriptURL() {
-		return getServerReloadWebscriptURL(getDeploymentMode());
-	}
-	
-	public String getServerReloadWebscriptURL(String mode) {
-		String serverURL = getServerURL();
-		if (serverURL == null) {
+
+	public String getServerReloadWebscriptURL(String serverUrl, boolean alfresco) {
+		
+		if (serverUrl == null) {
 			return null;
 		}
-		
-		if (isAlfresco()) {
-			return serverURL + "/service/index";
+
+		if (alfresco) {
+			return serverUrl + "/service/index";
 		} else {
-			return serverURL + "/page/index";
+			return serverUrl + "/page/index";
 		}
-		
 	}
 	
 	
+	public String getServerReloadWebscriptURL() {
+		return getServerReloadWebscriptURL(getServerURL(), isAlfresco());
+
+	}
 
 	public String getServerLogin() {
 		return preference.get(SERVER_RELOAD_LOGIN, null);
@@ -132,7 +132,13 @@ public class AlfrescoPreferenceHelper {
 	}
 
 	public boolean isAlfresco() {
-		return "alfresco".equals(getWebappName());
+		return isAlfresco(getWebappName());
+	}
+	
+	
+	public boolean isAlfresco(String webappName) {
+		// TODO Auto-generated method stub
+		return "alfresco".equals(webappName);
 	}
 
 	public void stageDeploymentMode(String mode) {
@@ -182,27 +188,27 @@ public class AlfrescoPreferenceHelper {
 
 		if (getAmpJarName() == null)
 			return null;
-		return getTargetAmpLocation() + File.separator + "lib" + getAmpJarName();
+		return getTargetAmpLocation() + File.separator + "lib"
+				+ getAmpJarName();
 
 	}
 
 	public String getTargetAmpLocation() {
-		
+
 		return preference.get(AMP_FOLDER_RELATIVE_PATH, null);
 	}
 
 	public String getAmpLib() {
 		String mode = getDeploymentMode();
-		if("Webapp".equals(mode)) {
+		if ("Webapp".equals(mode)) {
 			return path(getWebappAbsolutePath(), "WEB-INF", "lib");
-		}else if ("Shared".equals(mode)) {
+		} else if ("Shared".equals(mode)) {
 			return path(getServerPath(), "shared", "lib");
 		}
 		return null;
 	}
 
-	
-	private String path(String ...strings ) {
+	private String path(String... strings) {
 		return StringUtils.join(strings, File.separator);
 	}
 
@@ -212,14 +218,32 @@ public class AlfrescoPreferenceHelper {
 	}
 
 	public void setIncrementalDeploy(boolean selection) {
-		preference.putBoolean(AlfrescoPreferenceHelper.INCREMENTAL_DEPLOY , selection);
-		
+		preference.putBoolean(AlfrescoPreferenceHelper.INCREMENTAL_DEPLOY,
+				selection);
+
 	}
 
 	public boolean isIncrementalDeploy() {
-		
-		return preference.getBoolean(AlfrescoPreferenceHelper.INCREMENTAL_DEPLOY, false);
+
+		return preference.getBoolean(
+				AlfrescoPreferenceHelper.INCREMENTAL_DEPLOY, false);
+	}
+
+	public String getDeploymentAbsolutePath() {
+		if ("Shared".equals(getDeploymentMode()))
+			return getSharedAbsolutePath();
+		if ("Webapp".equals(getDeploymentMode()))
+			return getWebappAbsolutePath();
+		return null;
+
+	}
+
+	private String getSharedAbsolutePath() {
+		return path(getServerPath(), "shared");
 	}
 
 	
+
+	
+
 }

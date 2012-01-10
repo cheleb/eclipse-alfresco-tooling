@@ -1,14 +1,13 @@
 package org.eclipse.alfresco.publisher.core.properties;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.ServerHelper;
-import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -33,13 +32,13 @@ public class AlfrescoPropertyPage extends PropertyPage {
 
 	private Composite pathComposite;
 
-	private Text pathValueText;
+	private Text serverPathText;
 	private Label lblServerPath;
 	private String mode;
 	private String alfrescoHome;
 	private String serverPath;
 	private String webappName;
-	private Text urlText;
+	private Text serverUrlText;
 	private Text login;
 	private Text password;
 	private Text webappNameText;
@@ -104,7 +103,7 @@ public class AlfrescoPropertyPage extends PropertyPage {
 		new Label(pathComposite, SWT.NONE);
 		{
 			btnDeployment = new Button(pathComposite, SWT.CHECK);
-            btnDeployment.setSelection(preferences.isIncrementalDeploy());
+			btnDeployment.setSelection(preferences.isIncrementalDeploy());
 			btnDeployment.setText("Deployment");
 		}
 		new Label(pathComposite, SWT.NONE);
@@ -150,7 +149,8 @@ public class AlfrescoPropertyPage extends PropertyPage {
 			webappNameText = new Text(pathComposite, SWT.BORDER);
 			webappNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER,
 					true, false, 2, 1));
-			webappNameText.setText(webappName);
+			if (StringUtils.isNotBlank(webappName))
+				webappNameText.setText(webappName);
 		}
 		group = new Group(pathComposite, SWT.NONE);
 		{
@@ -168,6 +168,12 @@ public class AlfrescoPropertyPage extends PropertyPage {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						webappNameText.setText("alfresco");
+						if (StringUtils.isEmpty(serverPathText.getText())
+								&& StringUtils.isNotEmpty(alfrescoHomeText
+										.getText()))
+							serverPathText.setText(alfrescoHomeText.getText()
+									+ File.separator + "alfresco");
+
 					}
 				});
 			}
@@ -187,15 +193,17 @@ public class AlfrescoPropertyPage extends PropertyPage {
 		lblServerPath.setText("Server Path:");
 
 		// Path text field
-		pathValueText = new Text(composite, SWT.WRAP | SWT.READ_ONLY);
+		serverPathText = new Text(composite, SWT.WRAP | SWT.READ_ONLY);
 		GridData gd_pathValueText = new GridData(SWT.LEFT, SWT.CENTER, true,
 				false, 2, 1);
 
 		gd_pathValueText.horizontalAlignment = GridData.FILL;
 
-		pathValueText.setLayoutData(gd_pathValueText);
+		serverPathText.setLayoutData(gd_pathValueText);
 
-		pathValueText.setText(serverPath);
+		if (StringUtils.isNotBlank(serverPath)) {
+			serverPathText.setText(serverPath);
+		}
 
 		Button btnNewButton = new Button(pathComposite, SWT.NONE);
 		btnNewButton.setText("...");
@@ -205,13 +213,13 @@ public class AlfrescoPropertyPage extends PropertyPage {
 					false, false, 1, 1));
 			lblServerUrl.setText("Server URL");
 		}
-		urlText = new Text(pathComposite, SWT.BORDER);
-		urlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false,
+		serverUrlText = new Text(pathComposite, SWT.BORDER);
+		serverUrlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false,
 				3, 1));
 		{
 			String urlSaved = preferences.getServerURL();
 			if (urlSaved != null) {
-				urlText.setText(urlSaved);
+				serverUrlText.setText(urlSaved);
 			}
 		}
 
@@ -241,7 +249,7 @@ public class AlfrescoPropertyPage extends PropertyPage {
 				public void widgetSelected(SelectionEvent e) {
 
 					String reloadURL = preferences
-							.getServerReloadWebscriptURL(mode);
+							.getServerReloadWebscriptURL(serverUrlText.getText(), preferences.isAlfresco(webappNameText.getText()));
 
 					if (ServerHelper.reload(reloadURL, login.getText(),
 							password.getText(), new NullProgressMonitor())) {
@@ -287,7 +295,7 @@ public class AlfrescoPropertyPage extends PropertyPage {
 				String openDir = directoryDialog.open();
 
 				if (openDir != null) {
-					pathValueText.setText(openDir);
+					serverPathText.setText(openDir);
 					serverPath = openDir;
 				}
 
@@ -342,7 +350,7 @@ public class AlfrescoPropertyPage extends PropertyPage {
 	protected void performDefaults() {
 		super.performDefaults();
 
-		pathValueText.setText(serverPath);
+		serverPathText.setText(serverPath);
 
 	}
 
@@ -353,22 +361,33 @@ public class AlfrescoPropertyPage extends PropertyPage {
 			IProject project = (IProject) getElement();
 			AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(
 					project);
-
-			preferences.stageDeploymentMode(mode);
-			preferences.stageServerPath(serverPath);
-			preferences.stageWebappName(webappNameText.getText());
+			if (StringUtils.isBlank(mode)) {
+				errorMessage.append("Deployement mode must be choosen\n");
+			} else {
+				preferences.stageDeploymentMode(mode);
+			}
+			if (StringUtils.isBlank(serverPathText.getText())) {
+				errorMessage.append("ServerPath must be set\n");
+			} else {
+				preferences.stageServerPath(serverPathText.getText());
+			}
+			if (StringUtils.isBlank(webappNameText.getText())) {
+				errorMessage.append("Webapp name must be set.\n");
+			} else {
+				preferences.stageWebappName(webappNameText.getText());
+			}
 
 			String projectName = ((IProject) getElement()).getName();
 
 			if (StringUtils.isBlank(alfrescoHomeText.getText())) {
-				errorMessage.append("Alfresco Home must be set");
+				errorMessage.append("Alfresco Home must be set.\n");
 			} else {
 				preferences.stageAlfrescoHome(alfrescoHomeText.getText());
 			}
 
-			if (StringUtils.isNotBlank(urlText.getText())) {
-				new URL(urlText.getText());
-				preferences.stageServerURL(urlText.getText());
+			if (StringUtils.isNotBlank(serverUrlText.getText())) {
+				new URL(serverUrlText.getText());
+				preferences.stageServerURL(serverUrlText.getText());
 			}
 			if (StringUtils.isNotBlank(login.getText())) {
 				preferences.stageServerLogin(login.getText());
@@ -395,8 +414,8 @@ public class AlfrescoPropertyPage extends PropertyPage {
 			e.printStackTrace();
 		} catch (MalformedURLException e) {
 			MessageDialog.openError(getShell(), "Bad URL",
-					"This is not a valid URL: " + urlText.getText());
-			urlText.setFocus();
+					"This is not a valid URL: " + serverUrlText.getText());
+			serverUrlText.setFocus();
 			return false;
 		}
 		return true;

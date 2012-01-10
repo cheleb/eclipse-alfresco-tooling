@@ -124,7 +124,7 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 					.toFile(), true);
 			logPrinter = new PrintWriter(fileWriter);
 
-			Deployer deployer = buildDeployer(projects, logPrinter);
+			Deployer deployer = buildDeployer(preferences, logPrinter);
 
 			if (deployer == null) {
 				return projects;
@@ -153,11 +153,9 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 		return projects;
 	}
 
-	private Deployer buildDeployer(IProject[] projects, PrintWriter logPrinter)
+	private Deployer buildDeployer(AlfrescoPreferenceHelper preferences, PrintWriter logPrinter)
 			throws CoreException {
 
-		AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(
-				getProject());
 		final String mode = preferences.getDeploymentMode();
 
 		Deployer deployer;
@@ -226,32 +224,32 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 		if (addDefault) {
 			addDefaultMapping(fileMapping);
 		}
-		String ampLibFilename = preferences.getAmpJarName();
+		
 		String ampRelativePath = preferences.getTargetAmpLocation();
 		return new WebappDeployer(deploymentRoot, preferences.ignoreClasses(), ampRelativePath,
-				ampLibFilename, fileMapping, logPrinter);
+				fileMapping, logPrinter);
 
 	}
 
 	private Deployer buildSharedDeployer(PrintWriter logPrinter,
 			AlfrescoPreferenceHelper preferences) {
 		String deployementRoot = null;
-		String ampLibFilename = preferences.getAmpJarName();
+		
 		if (deployementRoot == null) {
 			Display.getDefault().asyncExec(new Runnable() {
 
 				@Override
 				public void run() {
 					MessageDialog.openError(Display.getDefault()
-							.getActiveShell(), "Preferences not set",
-							"Shared root must be defined.");
+							.getActiveShell(), "Not yet",
+							"This feature \"Shared deployer\" is not yet implemented.");
 					// TODO Auto-generated method stub
 
 				}
 			});
 			return null;
 		}
-		return new SharedDeployer(deployementRoot, preferences.ignoreClasses(), ampLibFilename, logPrinter);
+		return new SharedDeployer(deployementRoot, preferences.ignoreClasses(), logPrinter);
 
 	}
 

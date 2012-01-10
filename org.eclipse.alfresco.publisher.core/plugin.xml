@@ -35,8 +35,9 @@
          <action
                class="org.eclipse.alfresco.publisher.core.builder.ToggleNatureAction"
                enablesFor="+"
+               icon="icons/AlfrescoLogo16.png"
                id="org.eclipse.alfresco.publisher.core.addRemoveNatureAction"
-               label="Add/Remove Sample Nature"
+               label="Add/Remove Alfresco Nature"
                menubarPath="additions">
          </action>
       </objectContribution>
@@ -102,7 +103,7 @@
             category="alfresco"
             class="org.eclipse.alfresco.publisher.core.properties.AlfrescoPropertyPage"
             id="org.eclipse.alfresco.publisher.core.properties.alfrescoPropertyPage"
-            name="General properties Page"
+            name="Server settings"
             nameFilter="*.*">
          <enabledWhen>
             <instanceof
@@ -162,7 +163,7 @@
             commandId="org.eclipse.alfresco.publisher.core.commands.alfrescoDeployCommand"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+6">
+            sequence="SHIFT+CTRL+p">
       </key>
    </extension>
    <extension
