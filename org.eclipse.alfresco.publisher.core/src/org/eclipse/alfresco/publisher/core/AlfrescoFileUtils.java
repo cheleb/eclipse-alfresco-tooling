@@ -9,11 +9,11 @@ public class AlfrescoFileUtils {
 
 	private String deploymentAbsolutePath;
 
-	public AlfrescoFileUtils(String root) {
+	public AlfrescoFileUtils(String serverRoot, String webappName) {
 
-		if (root == null)
+		if (serverRoot == null)
 			throw new AlfrescoDeployementException("Tomcat root cannot be null");
-		File catalina = new File(root, "../../conf/catalina.properties");
+		File catalina = new File(serverRoot, "/conf/catalina.properties");
 		if (catalina.exists()) {
 
 		} else {
@@ -21,7 +21,7 @@ public class AlfrescoFileUtils {
 					+ catalina.getAbsolutePath()
 					+ " \" no found.");
 		}
-		this.deploymentAbsolutePath = root;
+		this.deploymentAbsolutePath = serverRoot + File.separator + "webapps" + File.separator + webappName;
 
 	}
 

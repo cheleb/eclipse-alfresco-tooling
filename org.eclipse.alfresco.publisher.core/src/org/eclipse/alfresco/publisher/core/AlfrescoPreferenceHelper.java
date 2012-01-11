@@ -96,7 +96,8 @@ public class AlfrescoPreferenceHelper {
 	}
 
 	public String getDeploymentMode() {
-		return preference.get(DEPLOYMENT_MODE, null);
+		//TODO Implement return preference.get(DEPLOYMENT_MODE, null);
+		return "Webapp";
 	}
 
 	public String getServerURL() {

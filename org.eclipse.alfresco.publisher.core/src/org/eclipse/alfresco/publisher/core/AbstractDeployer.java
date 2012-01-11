@@ -27,9 +27,9 @@ public abstract class AbstractDeployer implements Deployer {
 	private boolean ignoreClasses;
 	private AlfrescoFileUtils fileHelper;
 
-	public AbstractDeployer(String deploymentRoot, boolean ignoreClasses,
+	public AbstractDeployer(AlfrescoFileUtils fileHelper, boolean ignoreClasses,
 			PrintWriter printWriter) {
-		this.fileHelper = new AlfrescoFileUtils(deploymentRoot);
+		this.fileHelper = fileHelper;
 		this.logPrinter = printWriter;
 	}
 

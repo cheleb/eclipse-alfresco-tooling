@@ -21,9 +21,9 @@ public class WebappDeployer extends AbstractDeployer {
 	 * @param fileMapping
 	 * @param printWriter
 	 */
-	public WebappDeployer(String webappPath, boolean ignoreClasses, String ampRelativePath,
+	public WebappDeployer(AlfrescoFileUtils fileUtils, String webappPath, boolean ignoreClasses, String ampRelativePath,
 			Properties fileMapping, PrintWriter printWriter) {
-		super(webappPath, ignoreClasses, printWriter);
+		super(fileUtils, ignoreClasses, printWriter);
 		this.webappPath = webappPath;
 		this.ampRelativePath = ampRelativePath;
 		this.fileMapping = fileMapping;

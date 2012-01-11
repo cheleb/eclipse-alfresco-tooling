@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.Map;
 import java.util.Properties;
 
+import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.Deployer;
 import org.eclipse.alfresco.publisher.core.ResourceCommand;
@@ -226,7 +227,8 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 		}
 		
 		String ampRelativePath = preferences.getTargetAmpLocation();
-		return new WebappDeployer(deploymentRoot, preferences.ignoreClasses(), ampRelativePath,
+		AlfrescoFileUtils fileUtils = new AlfrescoFileUtils(preferences.getServerPath(), webappName);
+		return new WebappDeployer(fileUtils, deploymentRoot, preferences.ignoreClasses(), ampRelativePath,
 				fileMapping, logPrinter);
 
 	}
@@ -249,7 +251,8 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 			});
 			return null;
 		}
-		return new SharedDeployer(deployementRoot, preferences.ignoreClasses(), logPrinter);
+		AlfrescoFileUtils fileUtils = new AlfrescoFileUtils(preferences.getServerPath(), preferences.getWebappName());
+		return new SharedDeployer(fileUtils, deployementRoot, preferences.ignoreClasses(), logPrinter);
 
 	}
 

@@ -86,7 +86,7 @@
    <extension
          point="org.eclipse.ui.propertyPages">
       <page
-            class="org.eclipse.alfresco.publisher.core.properties.WorkbenchPreference"
+            class="org.eclipse.alfresco.publisher.core.properties.AlfrescoPropertyPage"
             id="alfresco"
             name="Alfresco">
              <enabledWhen>
@@ -101,9 +101,9 @@
       </page>
       <page
             category="alfresco"
-            class="org.eclipse.alfresco.publisher.core.properties.AlfrescoPropertyPage"
-            id="org.eclipse.alfresco.publisher.core.properties.alfrescoPropertyPage"
-            name="Server settings"
+            class="org.eclipse.alfresco.publisher.core.properties.AlfrescoServerPropertyPage"
+            id="org.eclipse.alfresco.publisher.core.properties.alfrescoServerPropertyPage"
+            name="Common settings"
             nameFilter="*.*">
          <enabledWhen>
             <instanceof
@@ -111,6 +111,21 @@
             </instanceof>
          </enabledWhen>
           <filter
+               name="nature"
+               value="org.eclipse.alfresco.publisher.core.alfrescoNature">
+         </filter>
+      </page>
+      <page
+            category="alfresco"
+            class="org.eclipse.alfresco.publisher.core.properties.AlfrescoDeploymentPropertyPage"
+            id="org.eclipse.alfresco.publisher.core.properties.alfrescoDeploymentPropertyPage"
+            name="Deployment settings" nameFilter="*.*">
+             <enabledWhen>
+            <instanceof
+                  value="org.eclipse.core.resources.IProject">
+            </instanceof>
+         </enabledWhen>
+            <filter
                name="nature"
                value="org.eclipse.alfresco.publisher.core.alfrescoNature">
          </filter>
