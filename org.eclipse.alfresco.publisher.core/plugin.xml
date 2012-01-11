@@ -42,6 +42,7 @@
          </action>
       </objectContribution>
       <objectContribution
+            adaptable="true"
             id="org.eclipse.alfresco.publisher.core.contribution"
             objectClass="org.eclipse.core.resources.IProject">
          <menu
@@ -73,26 +74,15 @@
       </objectContribution>
    </extension>
    <extension
-         id="xmlProblem"
-         name="XML Problem"
-         point="org.eclipse.core.resources.markers">
-      <super
-            type="org.eclipse.core.resources.problemmarker">
-      </super>
-      <persistent
-            value="true">
-      </persistent>
-   </extension>
-   <extension
          point="org.eclipse.ui.propertyPages">
       <page
             class="org.eclipse.alfresco.publisher.core.properties.AlfrescoPropertyPage"
             id="alfresco"
             name="Alfresco">
              <enabledWhen>
-            <instanceof
-                  value="org.eclipse.core.resources.IProject">
-            </instanceof>
+            <adapt
+                  type="org.eclipse.core.resources.IProject">
+            </adapt>
          </enabledWhen>
             <filter
                name="nature"
@@ -106,10 +96,10 @@
             name="Common settings"
             nameFilter="*.*">
          <enabledWhen>
-            <instanceof
-                  value="org.eclipse.core.resources.IProject">
-            </instanceof>
-         </enabledWhen>
+            <adapt
+                  type="org.eclipse.core.resources.IProject">
+            </adapt>
+                     </enabledWhen>
           <filter
                name="nature"
                value="org.eclipse.alfresco.publisher.core.alfrescoNature">
@@ -121,9 +111,9 @@
             id="org.eclipse.alfresco.publisher.core.properties.alfrescoDeploymentPropertyPage"
             name="Deployment settings" nameFilter="*.*">
              <enabledWhen>
-            <instanceof
-                  value="org.eclipse.core.resources.IProject">
-            </instanceof>
+                <adapt
+                      type="org.eclipse.core.resources.IProject">
+                </adapt>
          </enabledWhen>
             <filter
                name="nature"
@@ -141,18 +131,7 @@
    <extension
          point="org.eclipse.m2e.core.lifecycleMappingMetadataSource">
    </extension>
-   <extension
-         point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension
-            targetID="org.eclipse.jdt.ui.JavaPerspective">
-         <view
-               id="org.eclipse.alfresco.publisher.core.views.AlfrescoAMPView"
-               ratio="0.5"
-               relationship="right"
-               relative="org.eclipse.ui.views.TaskList">
-         </view>
-      </perspectiveExtension>
-   </extension>
+  
    <extension
          point="org.eclipse.ui.commands">
       <category
@@ -202,9 +181,9 @@
                id="org.eclipse.alfresco.publisher.core.toolbars.sampleToolbar">
             <command
                   commandId="org.eclipse.alfresco.publisher.core.commands.alfrescoDeployCommand"
-                  icon="icons/sample.gif"
+                  icon="icons/AlfrescoLogo16.png"
                   id="org.eclipse.alfresco.publisher.core.toolbars.sampleCommand"
-                  tooltip="Deploy to server">
+                  tooltip="Reload webscript">
             </command>
          </toolbar>
       </menuContribution>

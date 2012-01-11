@@ -3,6 +3,7 @@ package org.eclipse.alfresco.publisher.core.properties;
 import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoDeployementException;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
+import org.eclipse.alfresco.publisher.core.ProjectHelper;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -39,7 +40,7 @@ IWorkbenchPropertyPage {
 		
 	@Override
 	public Control createContents(Composite parent) {
-		IProject project = (IProject) getElement();
+		IProject project = ProjectHelper.getProject(getElement());
 
 		final AlfrescoPreferenceHelper pref = new AlfrescoPreferenceHelper(
 				project);
@@ -123,7 +124,7 @@ IWorkbenchPropertyPage {
 
 	@Override
 	public boolean performOk() {
-		IProject project = (IProject) getElement();
+		IProject project = ProjectHelper.getProject(getElement());
 		final AlfrescoPreferenceHelper pref = new AlfrescoPreferenceHelper(
 				project);
 		StringBuilder errorMessage = new StringBuilder();

@@ -6,8 +6,10 @@ import java.net.URL;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
+import org.eclipse.alfresco.publisher.core.ProjectHelper;
 import org.eclipse.alfresco.publisher.core.ServerHelper;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -60,7 +62,7 @@ IWorkbenchPropertyPage {
 	
 	private void addFirstSection(final Composite parent) {
 		
-		IProject project = (IProject) getElement();
+		IProject project = ProjectHelper.getProject(getElement());
 		
 		final AlfrescoPreferenceHelper pref = new AlfrescoPreferenceHelper(project);
 		
@@ -306,7 +308,7 @@ IWorkbenchPropertyPage {
 	@Override
 	public Control createContents(Composite parent) {
 
-		IProject project = (IProject) getElement();
+		IProject project = ProjectHelper.getProject(getElement());
 
 		final AlfrescoPreferenceHelper pref = new AlfrescoPreferenceHelper(
 				project);
@@ -356,7 +358,7 @@ IWorkbenchPropertyPage {
 		// store the value in the owner text field
 		StringBuilder errorMessage = new StringBuilder();
 		try {
-			IProject project = (IProject) getElement();
+			IProject project = ProjectHelper.getProject(getElement());
 			AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(
 					project);
 			
@@ -370,8 +372,8 @@ IWorkbenchPropertyPage {
 			} else {
 				preferences.stageWebappName(webappNameText.getText());
 			}
-
-			String projectName = ((IProject) getElement()).getName();
+			
+			String projectName = project.getName();
 
 			if (StringUtils.isBlank(alfrescoHomeText.getText())) {
 				errorMessage.append("Alfresco Home must be set.\n");
