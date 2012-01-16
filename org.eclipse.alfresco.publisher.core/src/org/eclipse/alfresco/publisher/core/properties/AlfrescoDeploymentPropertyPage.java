@@ -86,8 +86,6 @@ IWorkbenchPropertyPage {
 		deploymentModeComposite.setEnabled(incrementalDeploymentButton
 				.getSelection());
 
-		String mode = "Webapp";
-		
 		webappRadioButton = new Button(deploymentModeComposite, SWT.RADIO);
 		webappRadioButton.setText("Webapp");
 		//webappRadioButton.setSelection("Webapp".equals(pref.getDeploymentMode()));

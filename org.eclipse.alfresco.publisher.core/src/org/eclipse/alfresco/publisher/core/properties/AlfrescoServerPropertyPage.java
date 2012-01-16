@@ -9,7 +9,6 @@ import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.ProjectHelper;
 import org.eclipse.alfresco.publisher.core.ServerHelper;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -38,7 +37,7 @@ IWorkbenchPropertyPage {
 
 	private Text serverPathText;
 	private Label lblServerPath;
-	private String mode;
+	
 	private String alfrescoHome;
 	private String serverPath;
 	private String webappName;
@@ -66,7 +65,6 @@ IWorkbenchPropertyPage {
 		
 		final AlfrescoPreferenceHelper pref = new AlfrescoPreferenceHelper(project);
 		
-		mode = pref.getDeploymentMode();
 		serverPath = pref.getServerPath();
 		alfrescoHome = pref.getAlfrescoHome();
 		webappName = pref.getWebappName();

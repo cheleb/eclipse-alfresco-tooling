@@ -38,10 +38,7 @@ public class AlfrescoPreferenceHelper {
 
 	private Preferences preference;
 
-	private IProject project;
-
 	public AlfrescoPreferenceHelper(IProject project) {
-		this.project = project;
 		this.preference = getProjectPreferences(project);
 	}
 

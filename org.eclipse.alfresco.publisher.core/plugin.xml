@@ -46,11 +46,11 @@
             id="org.eclipse.alfresco.publisher.core.contribution"
             objectClass="org.eclipse.core.resources.IProject">
          <menu
-               id="org.eclipse.alfresco.publisher.core.menu1"
+               id="org.eclipse.alfresco.publisher.core.menu"
                label="Alfresco"
                path="additions">
             <separator
-                  name="group1">
+                  name="deploy">
             </separator>
          </menu>
          <action
@@ -58,14 +58,28 @@
                enablesFor="1"
                id="org.eclipse.alfresco.publisher.core.action.deployJar"
                label="Deploy Jar"
-               menubarPath="org.eclipse.alfresco.publisher.core.menu1/group1">
+               menubarPath="org.eclipse.alfresco.publisher.core.menu/deploy">
+         </action>
+         <action
+               class="org.eclipse.alfresco.publisher.core.popup.actions.CleanDeployJar"
+               enablesFor="1"
+               id="org.eclipse.alfresco.publisher.core.action.deployJar"
+               label="Clean Deploy Jar"
+               menubarPath="org.eclipse.alfresco.publisher.core.menu/deploy">
          </action>
           <action
                class="org.eclipse.alfresco.publisher.core.popup.actions.DeployAmp"
                enablesFor="1"
                id="org.eclipse.alfresco.publisher.core.action.deployAmp"
                label="Deploy AMP"
-               menubarPath="org.eclipse.alfresco.publisher.core.menu1/group1">
+               menubarPath="org.eclipse.alfresco.publisher.core.menu/deploy">
+         </action>
+         <action
+               class="org.eclipse.alfresco.publisher.core.popup.actions.CleanDeployAmp"
+               enablesFor="1"
+               id="org.eclipse.alfresco.publisher.core.action.deployAmp"
+               label="Clean Deploy AMP"
+               menubarPath="org.eclipse.alfresco.publisher.core.menu/deploy">               
          </action>
          <filter
                name="projectNature"

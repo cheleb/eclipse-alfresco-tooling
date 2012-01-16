@@ -2,7 +2,6 @@ package org.eclipse.alfresco.publisher.core.popup.actions;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
@@ -161,9 +160,9 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 			new ProgressMonitorDialog(shell).run(true, true,
 					iRunnableWithProgress);
 		} catch (InvocationTargetException e) {
-			LOGGER.error("", e);
+			LOGGER.error(e.getLocalizedMessage(), e.getCause());
 		} catch (InterruptedException e) {
-			LOGGER.error("", e);
+			LOGGER.error(e.getLocalizedMessage(), e.getCause());
 		}
 
 	}

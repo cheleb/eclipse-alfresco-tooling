@@ -3,8 +3,6 @@ package org.eclipse.alfresco.publisher.core.popup.actions;
 import java.io.File;
 import java.io.IOException;
 
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoDeployementException;
 import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
@@ -23,9 +21,11 @@ public class DeployAmp extends AlfrescoDeploy {
 			AlfrescoFileUtils alfrescoFileUtils,
 			AlfrescoPreferenceHelper preferences, IProgressMonitor monitor) {
 
+		
 		String alfrescoHome = preferences.getAlfrescoHome();
 
 		String ampRelativePath = preferences.getTargetAmpLocation() + ".amp";
+		LOGGER.info("Deploying AMP " + ampRelativePath);
 		final String webappAbsolutePath = preferences.getWebappAbsolutePath();
 
 		String mmtAbsolutePath = alfrescoHome + File.separator + "bin"

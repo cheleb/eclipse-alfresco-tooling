@@ -20,6 +20,7 @@ public class DeployJar extends AlfrescoDeploy {
 	protected void deploy(IProject project, AlfrescoFileUtils alfrescoFileUtils, AlfrescoPreferenceHelper preferences, IProgressMonitor monitor) throws IOException {
 		String jarName = preferences.getAmpJarName();
 		String jarLocation = preferences.getAmpJarLocation();
+		LOGGER.info("Deploying jar file " + jarLocation);
 		
 		String libFolder = preferences.getAmpLib();
 		
