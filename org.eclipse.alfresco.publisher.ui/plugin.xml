@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="org.eclipse.alfresco.publisher.ui.preferences.AlfrescoPreferencePage"
+            id="org.eclipse.alfresco.publisher.ui.preferences.AlfrescoPreferencePage"
+            name="Alfresco Preferences">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.eclipse.alfresco.publisher.ui.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
+   
+   
+    <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            class="org.eclipse.alfresco.publisher.ui.properties.AlfrescoPropertyPage"
+            id="org.eclipse.alfresco.publisher.ui.properties.alfrescoPropertyPage"
+            name="Alfresco">
+             <enabledWhen>
+            <adapt
+                  type="org.eclipse.core.resources.IProject">
+            </adapt>
+         </enabledWhen>
+            <filter
+               name="nature"
+               value="org.eclipse.alfresco.publisher.core.alfrescoNature">
+         </filter>
+      </page>
+      <page
+            category="org.eclipse.alfresco.publisher.ui.properties.alfrescoPropertyPage"
+            class="org.eclipse.alfresco.publisher.ui.properties.AlfrescoServerPropertyPage"
+            id="org.eclipse.alfresco.publisher.ui.properties.alfrescoServerPropertyPage"
+            name="Common settings">
+         <enabledWhen>
+            <adapt
+                  type="org.eclipse.core.resources.IProject">
+            </adapt>
+         </enabledWhen>
+          <filter
+               name="nature"
+               value="org.eclipse.alfresco.publisher.core.alfrescoNature">
+         </filter>
+      </page>
+      <page
+            category="org.eclipse.alfresco.publisher.ui.properties.alfrescoPropertyPage"
+            class="org.eclipse.alfresco.publisher.ui.properties.AlfrescoDeploymentPropertyPage"
+            id="org.eclipse.alfresco.publisher.ui.properties.alfrescoDeploymentPropertyPage"
+            name="Deployment settings">
+             <enabledWhen>
+                <adapt
+                      type="org.eclipse.core.resources.IProject">
+                </adapt>
+         </enabledWhen>
+            <filter
+               name="nature"
+               value="org.eclipse.alfresco.publisher.core.alfrescoNature">
+         </filter>
+      </page>
+   </extension>
+  
+</plugin>

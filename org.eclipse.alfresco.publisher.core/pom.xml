@@ -12,7 +12,7 @@
 
 	<packaging>eclipse-plugin</packaging>
 
-	<name>Maven Integration for Eclipse Settings</name>
+	<name>m2e Alfresco Core</name>
 
     <build>
       <sourceDirectory>src</sourceDirectory>

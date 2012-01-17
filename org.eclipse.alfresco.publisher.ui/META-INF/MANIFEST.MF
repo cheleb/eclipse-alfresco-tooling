@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Maven Integration for Eclipse Settings
-Bundle-SymbolicName: org.eclipse.alfresco.publisher.core;singleton:=true
+Bundle-SymbolicName: org.eclipse.alfresco.publisher.ui;singleton:=true
 Bundle-Version: 0.0.1.qualifier
-Bundle-Activator: org.eclipse.alfresco.publisher.core.AlfrescoPublisherActivator
+Bundle-Activator: org.eclipse.alfresco.publisher.ui.AlfrescoPublisherUIActivator
 Bundle-Vendor: Orcades LR.
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.resources,
@@ -27,7 +27,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.debug.ui;bundle-version="3.7.101",
  org.eclipse.jdt;bundle-version="3.7.1",
  org.eclipse.jdt.launching;bundle-version="3.6.1",
- org.eclipse.m2e.launching;bundle-version="1.0.100"
+ org.eclipse.m2e.launching;bundle-version="1.0.100",
+ org.eclipse.alfresco.publisher.core;bundle-version="0.0.1"
 Bundle-RequiredExecutionEnvironment:  JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Export-Package: org.eclipse.alfresco.publisher.core

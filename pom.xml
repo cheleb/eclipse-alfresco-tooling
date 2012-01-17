@@ -170,6 +170,7 @@
 
 	<modules>
 		<module>org.eclipse.alfresco.publisher.core</module>
+		<module>org.eclipse.alfresco.publisher.ui</module>
 		<module>org.eclipse.alfresco.publisher.feature</module>
 		<module>org.eclipse.alfresco.publisher.site</module>
 	</modules>

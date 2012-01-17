@@ -87,53 +87,7 @@
          </filter>
       </objectContribution>
    </extension>
-   <extension
-         point="org.eclipse.ui.propertyPages">
-      <page
-            class="org.eclipse.alfresco.publisher.core.properties.AlfrescoPropertyPage"
-            id="org.eclipse.alfresco.publisher.core.properties.alfrescoPropertyPage"
-            name="Alfresco">
-             <enabledWhen>
-            <adapt
-                  type="org.eclipse.core.resources.IProject">
-            </adapt>
-         </enabledWhen>
-            <filter
-               name="nature"
-               value="org.eclipse.alfresco.publisher.core.alfrescoNature">
-         </filter>
-      </page>
-      <page
-            category="org.eclipse.alfresco.publisher.core.properties.alfrescoPropertyPage"
-            class="org.eclipse.alfresco.publisher.core.properties.AlfrescoServerPropertyPage"
-            id="org.eclipse.alfresco.publisher.core.properties.alfrescoServerPropertyPage"
-            name="Common settings">
-         <enabledWhen>
-            <adapt
-                  type="org.eclipse.core.resources.IProject">
-            </adapt>
-         </enabledWhen>
-          <filter
-               name="nature"
-               value="org.eclipse.alfresco.publisher.core.alfrescoNature">
-         </filter>
-      </page>
-      <page
-            category="org.eclipse.alfresco.publisher.core.properties.alfrescoPropertyPage"
-            class="org.eclipse.alfresco.publisher.core.properties.AlfrescoDeploymentPropertyPage"
-            id="org.eclipse.alfresco.publisher.core.properties.alfrescoDeploymentPropertyPage"
-            name="Deployment settings">
-             <enabledWhen>
-                <adapt
-                      type="org.eclipse.core.resources.IProject">
-                </adapt>
-         </enabledWhen>
-            <filter
-               name="nature"
-               value="org.eclipse.alfresco.publisher.core.alfrescoNature">
-         </filter>
-      </page>
-   </extension>
+  
    <extension
          point="org.eclipse.m2e.core.projectConfigurators">
       <configurator
