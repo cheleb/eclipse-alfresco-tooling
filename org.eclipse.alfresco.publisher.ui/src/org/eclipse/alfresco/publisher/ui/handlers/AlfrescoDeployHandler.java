@@ -1,10 +1,10 @@
-package org.eclipse.alfresco.publisher.core.handlers;
+package org.eclipse.alfresco.publisher.ui.handlers;
 
 import java.lang.reflect.InvocationTargetException;
 
+import org.eclipse.alfresco.publisher.core.AlfrescoNature;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.ServerHelper;
-import org.eclipse.alfresco.publisher.core.builder.AlfrescoNature;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;

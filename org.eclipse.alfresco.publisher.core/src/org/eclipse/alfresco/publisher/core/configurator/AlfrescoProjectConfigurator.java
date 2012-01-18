@@ -1,6 +1,5 @@
 package org.eclipse.alfresco.publisher.core.configurator;
 
-import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.core.resources.ICommand;
@@ -94,13 +93,13 @@ public class AlfrescoProjectConfigurator extends AbstractProjectConfigurator {
 
 	}
 
-	private String getResourceMap(MavenProject mavenProject) {
-		StringBuilder builder = new StringBuilder();
-		for(Resource resource: mavenProject.getResources()) {
-			String targetPath = resource.getTargetPath();
-			boolean filtered = resource.isFiltering();
-		}
-		return builder.toString();
-	}
+//	private String getResourceMap(MavenProject mavenProject) {
+//		StringBuilder builder = new StringBuilder();
+//		for(Resource resource: mavenProject.getResources()) {
+//			String targetPath = resource.getTargetPath();
+//			boolean filtered = resource.isFiltering();
+//		}
+//		return builder.toString();
+//	}
 
 }

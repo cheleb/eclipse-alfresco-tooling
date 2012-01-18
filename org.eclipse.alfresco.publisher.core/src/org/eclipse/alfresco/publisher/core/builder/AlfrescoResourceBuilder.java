@@ -13,7 +13,6 @@ import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.Deployer;
 import org.eclipse.alfresco.publisher.core.ResourceCommand;
-import org.eclipse.alfresco.publisher.core.SharedDeployer;
 import org.eclipse.alfresco.publisher.core.WebappDeployer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -85,10 +84,10 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 	}
 
 	class SampleResourceVisitor implements IResourceVisitor {
-		private Deployer deployer;
+		//private Deployer deployer;
 
 		public SampleResourceVisitor(Deployer deployer) {
-			this.deployer = deployer;
+			//this.deployer = deployer;
 		}
 
 		public boolean visit(IResource resource) {
@@ -106,7 +105,7 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 	 * @see org.eclipse.core.internal.events.InternalBuilder#build(int,
 	 * java.util.Map, org.eclipse.core.runtime.IProgressMonitor)
 	 */
-	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
+	protected IProject[] build(int kind, Map<String, String> args, IProgressMonitor monitor)
 			throws CoreException {
 
 		IProject projects[] = new IProject[1];
@@ -235,9 +234,9 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 
 	private Deployer buildSharedDeployer(PrintWriter logPrinter,
 			AlfrescoPreferenceHelper preferences) {
-		String deployementRoot = null;
-		
-		if (deployementRoot == null) {
+//		String deployementRoot = null;
+//		
+//		if (deployementRoot == null) {
 			Display.getDefault().asyncExec(new Runnable() {
 
 				@Override
@@ -250,9 +249,10 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 				}
 			});
 			return null;
-		}
-		AlfrescoFileUtils fileUtils = new AlfrescoFileUtils(preferences.getServerPath(), preferences.getWebappName());
-		return new SharedDeployer(fileUtils, deployementRoot, preferences.ignoreClasses(), logPrinter);
+		//}
+	//	AlfrescoFileUtils fileUtils = new AlfrescoFileUtils(preferences.getServerPath(), preferences.getWebappName());
+		//return new SharedDeployer(fileUtils, deployementRoot, preferences.ignoreClasses(), logPrinter);
+		
 
 	}
 

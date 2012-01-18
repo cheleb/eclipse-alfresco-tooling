@@ -64,5 +64,124 @@
          </filter>
       </page>
    </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="true"
+            id="org.eclipse.alfresco.publisher.core.contribution1"
+            nameFilter="*"
+            objectClass="org.eclipse.core.resources.IProject">
+         <action
+               class="org.eclipse.alfresco.publisher.ui.popup.actions.ToggleNatureAction"
+               enablesFor="+"
+               icon="icons/alfresco-logo16.png"
+               id="org.eclipse.alfresco.publisher.ui.addRemoveNatureAction"
+               label="Add/Remove Alfresco Nature"
+               menubarPath="additions">
+         </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="org.eclipse.alfresco.publisher.ui.contribution"
+            objectClass="org.eclipse.core.resources.IProject">
+         <menu
+               id="org.eclipse.alfresco.publisher.ui.menu"
+               label="Alfresco"
+               path="additions">
+            <separator
+                  name="deploy">
+            </separator>
+         </menu>
+         <action
+               class="org.eclipse.alfresco.publisher.ui.popup.actions.DeployJar"
+               enablesFor="1"
+               id="org.eclipse.alfresco.publisher.ui.action.deployJar"
+               label="Deploy Jar"
+               menubarPath="org.eclipse.alfresco.publisher.ui.menu/deploy">
+         </action>
+         <action
+               class="org.eclipse.alfresco.publisher.ui.popup.actions.CleanDeployJar"
+               enablesFor="1"
+               id="org.eclipse.alfresco.publisher.ui.action.deployJar"
+               label="Clean Deploy Jar"
+               menubarPath="org.eclipse.alfresco.publisher.ui.menu/deploy">
+         </action>
+          <action
+               class="org.eclipse.alfresco.publisher.ui.popup.actions.DeployAmp"
+               enablesFor="1"
+               id="org.eclipse.alfresco.publisher.ui.action.deployAmp"
+               label="Deploy AMP"
+               menubarPath="org.eclipse.alfresco.publisher.ui.menu/deploy">
+         </action>
+         <action
+               class="org.eclipse.alfresco.publisher.ui.popup.actions.CleanDeployAmp"
+               enablesFor="1"
+               id="org.eclipse.alfresco.publisher.ui.action.deployAmp"
+               label="Clean Deploy AMP"
+               menubarPath="org.eclipse.alfresco.publisher.ui.menu/deploy">               
+         </action>
+         <filter
+               name="projectNature"
+               value="org.eclipse.alfresco.publisher.core.alfrescoNature">
+         </filter>
+      </objectContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            id="org.eclipse.alfresco.publisher.ui.commands.category"
+            name="Alfresco">
+      </category>
+      <command
+            categoryId="org.eclipse.alfresco.publisher.ui.commands.category"
+            id="org.eclipse.alfresco.publisher.ui.commands.alfrescoDeployCommand"
+            name="Alfresco Command">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="org.eclipse.alfresco.publisher.ui.handlers.AlfrescoDeployHandler"
+            commandId="org.eclipse.alfresco.publisher.ui.commands.alfrescoDeployCommand">
+      </handler>
+   </extension>
+   
+     <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.eclipse.alfresco.publisher.ui.commands.alfrescoDeployCommand"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="SHIFT+CTRL+p">
+      </key>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+         <menu
+               id="org.eclipse.alfresco.publisher.core.menus.alfrescoMenu"
+               label="Alfresco"
+               mnemonic="M">
+            <command
+                  commandId="org.eclipse.alfresco.publisher.ui.commands.alfrescoDeployCommand"
+                  id="org.eclipse.alfresco.publisher.ui.menus.alfrescoDeployCommand"
+                  mnemonic="S">
+            </command>
+         </menu>
+      </menuContribution>
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="org.eclipse.alfresco.publisher.core.toolbars.sampleToolbar">
+            <command
+                  commandId="org.eclipse.alfresco.publisher.ui.commands.alfrescoDeployCommand"
+                  icon="icons/alfresco-logo16.png"
+                  id="org.eclipse.alfresco.publisher.ui.toolbars.sampleCommand"
+                  tooltip="Reload webscript">
+            </command>
+         </toolbar>
+      </menuContribution>
+   </extension>
   
 </plugin>

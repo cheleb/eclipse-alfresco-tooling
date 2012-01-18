@@ -1,4 +1,4 @@
-package org.eclipse.alfresco.publisher.core.popup.actions;
+package org.eclipse.alfresco.publisher.ui.popup.actions;
 
 import java.io.File;
 import java.io.IOException;

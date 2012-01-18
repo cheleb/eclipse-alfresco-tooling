@@ -1,5 +1,6 @@
-package org.eclipse.alfresco.publisher.core.builder;
+package org.eclipse.alfresco.publisher.core;
 
+import org.eclipse.alfresco.publisher.core.builder.AlfrescoResourceBuilder;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;

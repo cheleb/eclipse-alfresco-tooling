@@ -1,4 +1,4 @@
-package org.eclipse.alfresco.publisher.core.popup.actions;
+package org.eclipse.alfresco.publisher.ui.popup.actions;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,42 +7,22 @@ import java.util.Map;
 
 import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
-import org.eclipse.core.resources.IContainer;
+import org.eclipse.alfresco.publisher.core.MavenLaunchHelper;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.DebugException;
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationType;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.ui.DebugUITools;
-import org.eclipse.debug.ui.IDebugUIConstants;
-import org.eclipse.debug.ui.RefreshTab;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
-import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.m2e.actions.ExecutePomAction;
-import org.eclipse.m2e.actions.MavenLaunchConstants;
-import org.eclipse.m2e.core.MavenPlugin;
-import org.eclipse.m2e.core.internal.IMavenConstants;
-import org.eclipse.m2e.core.project.IMavenProjectFacade;
-import org.eclipse.m2e.core.project.IMavenProjectRegistry;
-import org.eclipse.m2e.core.project.ResolverConfiguration;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IObjectActionDelegate;
@@ -219,7 +199,7 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 		String goals = getGoals();
 
-		final ILaunchConfiguration launchConf = createLaunchConfiguration(
+		final ILaunchConfiguration launchConf = MavenLaunchHelper.createLaunchConfiguration(
 				project, goals);
 
 		shell.getDisplay().syncExec(new Runnable() {
@@ -257,99 +237,8 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 	protected abstract String getGoals();
 
-	private ILaunchConfiguration createLaunchConfiguration(IContainer basedir,
-			String goal) {
-		try {
-			ILaunchManager launchManager = DebugPlugin.getDefault()
-					.getLaunchManager();
-			ILaunchConfigurationType launchConfigurationType = launchManager
-					.getLaunchConfigurationType(MavenLaunchConstants.LAUNCH_CONFIGURATION_TYPE_ID);
-
-			String launchSafeGoalName = goal.replace(':', '-');
-
-			ILaunchConfigurationWorkingCopy workingCopy = launchConfigurationType
-					.newInstance(null, //
-							"MyLaunch");
-			workingCopy.setAttribute(MavenLaunchConstants.ATTR_POM_DIR, basedir
-					.getLocation().toOSString());
-			workingCopy.setAttribute(MavenLaunchConstants.ATTR_GOALS, goal);
-			workingCopy.setAttribute(IDebugUIConstants.ATTR_PRIVATE, true);
-			workingCopy.setAttribute(
-					IDebugUIConstants.ATTR_LAUNCH_IN_BACKGROUND, false);
-			workingCopy.setAttribute(RefreshTab.ATTR_REFRESH_SCOPE,
-					"${project}"); //$NON-NLS-1$
-			workingCopy.setAttribute(RefreshTab.ATTR_REFRESH_RECURSIVE, true);
-
-			setProjectConfiguration(workingCopy, basedir);
-
-			IPath path = getJREContainerPath(basedir);
-			if (path != null) {
-				workingCopy
-						.setAttribute(
-								IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH,
-								path.toPortableString());
-			}
-
-			// TODO when launching Maven with debugger consider to add the
-			// following property
-			// -Dmaven.surefire.debug="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000 -Xnoagent -Djava.compiler=NONE"
-
-			return workingCopy;
-		} catch (CoreException ex) {
-			LOGGER.error(ex.getMessage(), ex);
-		}
-		return null;
-	}
-
-	private void setProjectConfiguration(
-			ILaunchConfigurationWorkingCopy workingCopy, IContainer basedir) {
-		IMavenProjectRegistry projectManager = MavenPlugin
-				.getMavenProjectRegistry();
-		IFile pomFile = basedir
-				.getFile(new Path(IMavenConstants.POM_FILE_NAME));
-		IMavenProjectFacade projectFacade = projectManager.create(pomFile,
-				false, new NullProgressMonitor());
-		if (projectFacade != null) {
-			ResolverConfiguration configuration = projectFacade
-					.getResolverConfiguration();
-
-			String activeProfiles = configuration.getActiveProfiles();
-			if (activeProfiles != null && activeProfiles.length() > 0) {
-				workingCopy.setAttribute(MavenLaunchConstants.ATTR_PROFILES,
-						activeProfiles);
-			}
-		}
-	}
-
-	// TODO ideally it should use MavenProject, but it is faster to scan
-	// IJavaProjects
-	private IPath getJREContainerPath(IContainer basedir) throws CoreException {
-		IProject project = basedir.getProject();
-		if (project != null && project.hasNature(JavaCore.NATURE_ID)) {
-			IJavaProject javaProject = JavaCore.create(project);
-			IClasspathEntry[] entries = javaProject.getRawClasspath();
-			for (int i = 0; i < entries.length; i++) {
-				IClasspathEntry entry = entries[i];
-				if (JavaRuntime.JRE_CONTAINER
-						.equals(entry.getPath().segment(0))) {
-					return entry.getPath();
-				}
-			}
-		}
-		return null;
-	}
-
-	@SuppressWarnings("restriction")
-	private void buildJar2() {
-		ExecutePomAction executePomAction = new ExecutePomAction();
-		executePomAction.setInitializationData(null, null, "package -Pamp");
-
-		// executePomAction.
-
-		executePomAction.launch(selection, ILaunchManager.RUN_MODE);
-
-		// DebugUITools;
-	}
+	
+	
 
 	private void stopServer(AlfrescoPreferenceHelper preferences)
 			throws IOException {
