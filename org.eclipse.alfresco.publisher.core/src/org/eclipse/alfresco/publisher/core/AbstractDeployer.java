@@ -146,7 +146,6 @@ public abstract class AbstractDeployer implements Deployer {
 
 			try {
 				log("RM", toRemove);
-				FileUtils.deleteDirectory(toRemove.getDst());
 				fileHelper.rm(toRemove.getDst());
 
 			} catch (IOException e) {

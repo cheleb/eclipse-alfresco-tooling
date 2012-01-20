@@ -152,7 +152,7 @@
             commandId="org.eclipse.alfresco.publisher.ui.commands.alfrescoDeployCommand"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="SHIFT+CTRL+p">
+            sequence="SHIFT+ALT+p">
       </key>
    </extension>
    <extension

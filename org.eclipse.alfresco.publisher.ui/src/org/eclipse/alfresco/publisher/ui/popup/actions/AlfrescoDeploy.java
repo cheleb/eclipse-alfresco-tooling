@@ -63,8 +63,9 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 		final AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(
 				project);
-		
-		final AlfrescoFileUtils alfrescoFileUtils = new AlfrescoFileUtils(preferences.getServerPath(), preferences.getWebappName());
+
+		final AlfrescoFileUtils alfrescoFileUtils = new AlfrescoFileUtils(
+				preferences.getServerPath(), preferences.getWebappName());
 
 		IRunnableWithProgress iRunnableWithProgress = new IRunnableWithProgress() {
 
@@ -75,13 +76,14 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 				boolean deploymentIncrematalCanceled = shoulDeactivateIncrementalDeployement()
 						&& preferences.isIncrementalDeploy();
-				
+
 				IFile logFile = project.getFile("target/deployed.log");
-				if(logFile.exists()) {
+				if (logFile.exists()) {
 					try {
 						logFile.delete(true, monitor);
 					} catch (CoreException e) {
-						LOGGER.error(logFile.getProjectRelativePath().toOSString() + " could not be reset.", e);
+						LOGGER.error(logFile.getProjectRelativePath()
+								.toOSString() + " could not be reset.", e);
 					}
 				}
 
@@ -93,7 +95,7 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 					monitor.subTask("Stopping server");
 					stopServer(preferences);
-					if(monitor.isCanceled()) {
+					if (monitor.isCanceled()) {
 						LOGGER.info("Canceled");
 						return;
 					}
@@ -101,7 +103,7 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 					monitor.subTask("Invoking build");
 					build(project, monitor);
 					monitor.worked(1);
-					if(monitor.isCanceled()) {
+					if (monitor.isCanceled()) {
 						LOGGER.info("Canceled");
 						return;
 					}
@@ -109,7 +111,7 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 					deploy(project, alfrescoFileUtils, preferences, monitor);
 					monitor.worked(1);
 					monitor.subTask("Starting server");
-					if(monitor.isCanceled()) {
+					if (monitor.isCanceled()) {
 						LOGGER.info("Canceled");
 						return;
 					}
@@ -192,15 +194,16 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 	}
 
 	protected abstract void deploy(IProject project,
-			AlfrescoFileUtils alfrescoFileUtils, AlfrescoPreferenceHelper preferences, IProgressMonitor monitor)
+			AlfrescoFileUtils alfrescoFileUtils,
+			AlfrescoPreferenceHelper preferences, IProgressMonitor monitor)
 			throws IOException;
 
 	private void build(IProject project, final IProgressMonitor monitor) {
 
 		String goals = getGoals();
 
-		final ILaunchConfiguration launchConf = MavenLaunchHelper.createLaunchConfiguration(
-				project, goals);
+		final ILaunchConfiguration launchConf = MavenLaunchHelper
+				.createLaunchConfiguration(project, goals);
 
 		shell.getDisplay().syncExec(new Runnable() {
 
@@ -212,9 +215,15 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 				while (!currentProcess.isTerminated()) {
 					try {
 						Thread.sleep(1000);
+						LOGGER.debug(currentProcess.getLabel() + " " + currentProcess.canTerminate());
+						if(true && currentProcess.canTerminate())
+							currentProcess.terminate();
 					} catch (InterruptedException e) {
 						LOGGER.error(e.getLocalizedMessage(), e);
 						throw new RuntimeException(e);
+					} catch (DebugException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 					if (monitor.isCanceled()) {
 
@@ -236,9 +245,6 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 	protected abstract boolean shoulDeactivateIncrementalDeployement();
 
 	protected abstract String getGoals();
-
-	
-	
 
 	private void stopServer(AlfrescoPreferenceHelper preferences)
 			throws IOException {
