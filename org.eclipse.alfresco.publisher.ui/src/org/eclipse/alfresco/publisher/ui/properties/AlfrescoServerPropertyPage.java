@@ -8,6 +8,8 @@ import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.ProjectHelper;
 import org.eclipse.alfresco.publisher.core.ServerHelper;
+import org.eclipse.alfresco.publisher.ui.AlfrescoPublisherUIActivator;
+import org.eclipse.alfresco.publisher.ui.preferences.PreferenceConstants;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.equinox.security.storage.StorageException;
@@ -38,7 +40,7 @@ IWorkbenchPropertyPage {
 	private Text serverPathText;
 	private Label lblServerPath;
 	
-	private String alfrescoHome;
+	//private String alfrescoHome;
 	private String serverPath;
 	private String webappName;
 	private Text serverUrlText;
@@ -66,7 +68,10 @@ IWorkbenchPropertyPage {
 		final AlfrescoPreferenceHelper pref = new AlfrescoPreferenceHelper(project);
 		
 		serverPath = pref.getServerPath();
-		alfrescoHome = pref.getAlfrescoHome();
+		String alfrescoHome = pref.getAlfrescoHome();
+		if(StringUtils.isBlank(alfrescoHome)) {
+			alfrescoHome = AlfrescoPublisherUIActivator.getDefault().getPreferenceStore().getString(PreferenceConstants.ALFRESCO_PATH);
+		}
 		webappName = pref.getWebappName();
 
 		Composite composite = createDefaultComposite(parent);
