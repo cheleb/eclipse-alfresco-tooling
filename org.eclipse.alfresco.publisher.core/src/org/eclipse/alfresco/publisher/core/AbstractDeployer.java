@@ -147,7 +147,6 @@ public abstract class AbstractDeployer implements Deployer {
 			try {
 				log("RM", toRemove);
 				fileHelper.rm(toRemove.getDst());
-
 			} catch (IOException e) {
 				LOGGER.error("Could not delete dir: " + toRemove.getDst(), e);
 

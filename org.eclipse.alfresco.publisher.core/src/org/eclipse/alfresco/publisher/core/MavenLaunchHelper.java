@@ -49,6 +49,8 @@ public class MavenLaunchHelper {
 			workingCopy.setAttribute(MavenLaunchConstants.ATTR_POM_DIR, basedir
 					.getLocation().toOSString());
 			workingCopy.setAttribute(MavenLaunchConstants.ATTR_GOALS, goal);
+			workingCopy.setAttribute(MavenLaunchConstants.ATTR_DEBUG_OUTPUT, false);
+			
 			workingCopy.setAttribute(IDebugUIConstants.ATTR_PRIVATE, true);
 			workingCopy.setAttribute(
 					IDebugUIConstants.ATTR_LAUNCH_IN_BACKGROUND, false);

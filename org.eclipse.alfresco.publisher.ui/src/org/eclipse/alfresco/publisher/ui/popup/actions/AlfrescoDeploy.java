@@ -1,9 +1,17 @@
 package org.eclipse.alfresco.publisher.ui.popup.actions;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
@@ -115,6 +123,9 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 						LOGGER.info("Canceled");
 						return;
 					}
+
+					cleanBackupFile(preferences, monitor);
+
 					startServer(preferences);
 					monitor.worked(1);
 				} catch (IOException e) {
@@ -145,6 +156,49 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 			LOGGER.error(e.getLocalizedMessage(), e.getCause());
 		} catch (InterruptedException e) {
 			LOGGER.error(e.getLocalizedMessage(), e.getCause());
+		}
+
+	}
+
+	protected void cleanBackupFile(AlfrescoPreferenceHelper preferences,
+			IProgressMonitor monitor) {
+		File webappPath = new File(preferences.getWebappAbsolutePath());
+		File webappsPath = webappPath.getParentFile();
+
+		String webappName = preferences.getWebappName();
+
+		final Pattern pattern = Pattern.compile(webappName + ".war-(\\d+).bak");
+
+		File[] list = webappsPath.listFiles(new FilenameFilter() {
+
+			@Override
+			public boolean accept(File dir, String name) {
+
+				return pattern.matcher(name).matches();
+			}
+		});
+		List<File> backUpFiles = new ArrayList<File>();
+		Collections.addAll(backUpFiles, list);
+		Collections.sort(backUpFiles, new Comparator<File>() {
+
+			@Override
+			public int compare(File o1, File o2) {
+				if (o1.lastModified() < o2.lastModified()) {
+					return 1;
+				} else
+					return -1;
+			}
+		});
+
+		for (int i = 4; i < backUpFiles.size(); i++) {
+			File file = backUpFiles.get(i);
+			boolean delete = file.delete();
+			if (delete) {
+				LOGGER.info("Removed: " + file.getName());
+			} else {
+				LOGGER.warn("Could not delete: " + file.getAbsolutePath());
+			}
+
 		}
 
 	}
@@ -210,35 +264,30 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 			@Override
 			public void run() {
 				DebugUITools.launch(launchConf, ILaunchManager.RUN_MODE);
-				IProcess currentProcess = DebugUITools.getCurrentProcess();
-
-				while (!currentProcess.isTerminated()) {
-					try {
-						Thread.sleep(1000);
-						LOGGER.debug(currentProcess.getLabel() + " " + currentProcess.canTerminate());
-						if(true && currentProcess.canTerminate())
-							currentProcess.terminate();
-					} catch (InterruptedException e) {
-						LOGGER.error(e.getLocalizedMessage(), e);
-						throw new RuntimeException(e);
-					} catch (DebugException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					if (monitor.isCanceled()) {
-
-						try {
-							currentProcess.terminate();
-						} catch (DebugException e) {
-							LOGGER.error(e.getLocalizedMessage(), e);
-							throw new RuntimeException(e);
-						}
-
-					}
-				}
 
 			}
 		});
+
+		IProcess currentProcess = DebugUITools.getCurrentProcess();
+
+		while (!currentProcess.isTerminated()) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				LOGGER.error(e.getLocalizedMessage(), e);
+				throw new RuntimeException(e);
+			}
+			if (monitor.isCanceled()) {
+
+				try {
+					currentProcess.terminate();
+				} catch (DebugException e) {
+					LOGGER.error(e.getLocalizedMessage(), e);
+					throw new RuntimeException(e);
+				}
+
+			}
+		}
 
 	}
 
