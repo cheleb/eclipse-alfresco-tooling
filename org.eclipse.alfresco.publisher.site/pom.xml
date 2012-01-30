@@ -10,21 +10,15 @@
   <artifactId>org.eclipse.alfresco.publisher.site</artifactId>
   <packaging>eclipse-update-site</packaging>
   <name>m2e Alfresco - Update site</name>
+  <properties>
+    <updatesite.name>m2e-alfresco</updatesite.name>
+  </properties>
   <build>
     <plugins>
       <plugin>
         <groupId>org.eclipse.tycho</groupId>
         <artifactId>tycho-packaging-plugin</artifactId>
         <version>${tycho-version}</version>
-        <!-- <executions> -->
-        <!-- <execution> -->
-        <!-- <id>categorization</id> -->
-        <!-- <phase>package</phase> -->
-        <!-- <goals> -->
-        <!-- <goal>category-p2-metadata</goal> -->
-        <!-- </goals> -->
-        <!-- </execution> -->
-        <!-- </executions> -->
         <configuration>
           <metadataRepositoryName>Maven Integration for Eclipse Settings</metadataRepositoryName>
           <artifactRepositoryName>Maven Integration for Eclipse Settings</artifactRepositoryName>
@@ -52,26 +46,59 @@
   </build>
   <profiles>
     <profile>
-      <id>publish-site</id>
+      <id>publish-local</id>
       <build>
         <plugins>
           <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>maven-upload-plugin</artifactId>
-            <version>0.0.1</version>
+            <groupId>org.eclipse.maven.updatesite</groupId>
+            <artifactId>maven-updatesite-plugin</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <configuration>
+              <sites combine.children="append">
+                <site>
+                  <baseURL>${primary.updatesite.url}</baseURL>
+                  <serverId>${primary.updatesite.serverId}</serverId>
+                  <parent>${updatesite.parent}</parent>
+                  <name>${updatesite.name}</name>
+                </site>
+              </sites>
+            </configuration>
             <executions>
               <execution>
-                <id>publish-site</id>
-                <phase>deploy</phase>
+                <id>deploy-local</id>
                 <goals>
-                  <goal>upload-file</goal>
+                  <goal>deploy</goal>
                 </goals>
-                <configuration>
-                  <file>${project.build.directory}/${project.artifactId}-${project.version}-site.zip</file>
-                  <serverId>forge-releases</serverId>
-                  <repositoryUrl>${m2e.site-compressed}</repositoryUrl>
-                  <repositoryPath>m2eclipse-ajdt/${unqualifiedVersion}/N/${unqualifiedVersion}.${buildQualifier}</repositoryPath>
-                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>publish-remote</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.maven.updatesite</groupId>
+            <artifactId>maven-updatesite-plugin</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <configuration>
+              <sites combine.children="append">
+                <site>
+                  <baseURL>${secondary.updatesite.url}</baseURL>
+                  <serverId>${secondary.updatesite.serverId}</serverId>
+                  <parent>${updatesite.parent}</parent>
+                  <name>${updatesite.name}</name>
+                </site>
+              </sites>
+            </configuration>
+            <executions>
+              <execution>
+                <id>deploy-remote</id>
+                <goals>
+                  <goal>deploy</goal>
+                </goals>
               </execution>
             </executions>
           </plugin>
