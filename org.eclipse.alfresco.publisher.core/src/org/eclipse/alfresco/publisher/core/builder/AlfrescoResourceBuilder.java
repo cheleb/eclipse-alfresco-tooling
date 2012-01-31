@@ -11,6 +11,7 @@ import java.util.Properties;
 
 import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
+import org.eclipse.alfresco.publisher.core.AlfrescoPublisherActivator;
 import org.eclipse.alfresco.publisher.core.Deployer;
 import org.eclipse.alfresco.publisher.core.ResourceCommand;
 import org.eclipse.alfresco.publisher.core.WebappDeployer;
@@ -23,6 +24,7 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -212,9 +214,9 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 				fileMapping.load(fileReader);
 				fileReader.close();
 			} catch (FileNotFoundException e) {
-				throw new CoreException(Status.CANCEL_STATUS);
+				throw new CoreException(new Status(IStatus.ERROR, AlfrescoPublisherActivator.PLUGIN_ID, e.getLocalizedMessage(), e));
 			} catch (IOException e) {
-				throw new CoreException(Status.CANCEL_STATUS);
+				throw new CoreException(new Status(IStatus.ERROR, AlfrescoPublisherActivator.PLUGIN_ID, e.getLocalizedMessage(), e));
 			}
 			addDefault = "true".equals(fileMapping.getProperty(
 					"include.default", "true"));

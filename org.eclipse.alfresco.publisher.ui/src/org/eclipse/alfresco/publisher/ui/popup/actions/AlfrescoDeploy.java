@@ -5,22 +5,18 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.MavenLaunchHelper;
-import org.eclipse.core.resources.IFile;
+import org.eclipse.alfresco.publisher.ui.OperationCanceledException;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
@@ -28,18 +24,20 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IActionDelegate;
+
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
-import org.osgi.service.prefs.BackingStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AlfrescoDeploy implements IObjectActionDelegate {
+
+	private static final int THREAD_SLEEP_1000 = 1000;
+
+	private static final int DEFAULT_WAR_BACKUP_FILE_KEEP_4 = 4;
 
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(AlfrescoDeploy.class);
@@ -75,83 +73,12 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 		final AlfrescoFileUtils alfrescoFileUtils = new AlfrescoFileUtils(
 				preferences.getServerPath(), preferences.getWebappName());
 
-		IRunnableWithProgress iRunnableWithProgress = new IRunnableWithProgress() {
-
-			@Override
-			public void run(IProgressMonitor monitor)
-					throws InvocationTargetException, InterruptedException {
-				monitor.beginTask("Reloading", 4);
-
-				boolean deploymentIncrematalCanceled = shoulDeactivateIncrementalDeployement()
-						&& preferences.isIncrementalDeploy();
-
-				IFile logFile = project.getFile("target/deployed.log");
-				if (logFile.exists()) {
-					try {
-						logFile.delete(true, monitor);
-					} catch (CoreException e) {
-						LOGGER.error(logFile.getProjectRelativePath()
-								.toOSString() + " could not be reset.", e);
-					}
-				}
-
-				try {
-					if (deploymentIncrematalCanceled) {
-						preferences.setIncrementalDeploy(false);
-						preferences.flush();
-					}
-
-					monitor.subTask("Stopping server");
-					stopServer(preferences);
-					if (monitor.isCanceled()) {
-						LOGGER.info("Canceled");
-						return;
-					}
-					monitor.worked(1);
-					monitor.subTask("Invoking build");
-					build(project, monitor);
-					monitor.worked(1);
-					if (monitor.isCanceled()) {
-						LOGGER.info("Canceled");
-						return;
-					}
-					monitor.subTask("Deploy AMP");
-					deploy(project, alfrescoFileUtils, preferences, monitor);
-					monitor.worked(1);
-					monitor.subTask("Starting server");
-					if (monitor.isCanceled()) {
-						LOGGER.info("Canceled");
-						return;
-					}
-
-					cleanBackupFile(preferences, monitor);
-
-					startServer(preferences);
-					monitor.worked(1);
-				} catch (IOException e) {
-					throw new OperationCanceledException(
-							e.getLocalizedMessage());
-				} catch (BackingStoreException e) {
-					throw new OperationCanceledException(
-							e.getLocalizedMessage());
-				} finally {
-					if (deploymentIncrematalCanceled) {
-						preferences.setIncrementalDeploy(true);
-						try {
-							preferences.flush();
-						} catch (BackingStoreException e) {
-							throw new OperationCanceledException(
-									e.getLocalizedMessage());
-						}
-					}
-				}
-
-			}
-		};
-
 		try {
 			new ProgressMonitorDialog(shell).run(true, true,
-					iRunnableWithProgress);
+					new AMPDeployRunnable(this, alfrescoFileUtils, project,
+							preferences,
+							shoulDeactivateIncrementalDeployement()
+									&& preferences.isIncrementalDeploy()));
 		} catch (InvocationTargetException e) {
 			LOGGER.error(e.getLocalizedMessage(), e.getCause());
 		} catch (InterruptedException e) {
@@ -185,12 +112,13 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 			public int compare(File o1, File o2) {
 				if (o1.lastModified() < o2.lastModified()) {
 					return 1;
-				} else
+				} else {
 					return -1;
+				}
 			}
 		});
 
-		for (int i = 4; i < backUpFiles.size(); i++) {
+		for (int i = DEFAULT_WAR_BACKUP_FILE_KEEP_4; i < backUpFiles.size(); i++) {
 			File file = backUpFiles.get(i);
 			boolean delete = file.delete();
 			if (delete) {
@@ -203,8 +131,7 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 	}
 
-	private void startServer(AlfrescoPreferenceHelper preferences)
-			throws IOException {
+	void startServer(AlfrescoPreferenceHelper preferences) throws IOException {
 		ProcessBuilder processBuilder = null;
 		Map<String, String> environment = null;
 		if (preferences.isAlfresco()) {
@@ -228,8 +155,7 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 		try {
 			start.waitFor();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new OperationCanceledException(e.getLocalizedMessage(), e);
 		}
 
 	}
@@ -252,7 +178,7 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 			AlfrescoPreferenceHelper preferences, IProgressMonitor monitor)
 			throws IOException;
 
-	private void build(IProject project, final IProgressMonitor monitor) {
+	void build(IProject project, final IProgressMonitor monitor) {
 
 		String goals = getGoals();
 
@@ -272,18 +198,16 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 		while (!currentProcess.isTerminated()) {
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(THREAD_SLEEP_1000);
 			} catch (InterruptedException e) {
-				LOGGER.error(e.getLocalizedMessage(), e);
-				throw new RuntimeException(e);
+				throw new OperationCanceledException(e.getLocalizedMessage(), e);
 			}
 			if (monitor.isCanceled()) {
 
 				try {
 					currentProcess.terminate();
 				} catch (DebugException e) {
-					LOGGER.error(e.getLocalizedMessage(), e);
-					throw new RuntimeException(e);
+					throw new OperationCanceledException(e.getLocalizedMessage(), e);
 				}
 
 			}
@@ -295,8 +219,7 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 	protected abstract String getGoals();
 
-	private void stopServer(AlfrescoPreferenceHelper preferences)
-			throws IOException {
+	void stopServer(AlfrescoPreferenceHelper preferences) throws IOException {
 
 		ProcessBuilder processBuilder;
 		if (preferences.isAlfresco()) {

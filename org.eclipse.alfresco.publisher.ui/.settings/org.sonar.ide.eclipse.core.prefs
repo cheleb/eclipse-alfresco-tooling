@@ -1,0 +1,8 @@
+#Tue Jan 31 18:58:57 CET 2012
+analyseLocally=true
+eclipse.preferences.version=1
+projectArtifactId=org.eclipse.alfresco.publisher.ui
+projectBranch=
+projectGroupId=org.eclipse.alfresco
+serverUrl=http\://localhost\:9000
+version=1

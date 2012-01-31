@@ -4,14 +4,14 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 public class AlfrescoPublisherUIActivator extends AbstractUIPlugin {
 
-	private static AlfrescoPublisherUIActivator INSTANCE;
+	private static AlfrescoPublisherUIActivator instance;
 	
 	public AlfrescoPublisherUIActivator() {
-		INSTANCE = this;
+		instance = this;
 	}
 
 	public static AlfrescoPublisherUIActivator getDefault() {
-		return INSTANCE;
+		return instance;
 	}
 
 	

@@ -7,21 +7,21 @@ import org.eclipse.core.resources.IResource;
 
 public interface Deployer {
 	
-	public ResourceCommand getResourceCommand(IResource resource, int kind);
+	ResourceCommand getResourceCommand(IResource resource, int kind);
 	
-	public File getClasses();
+	File getClasses();
 	
-	public String getPathRelativeToClasses(String projectRelativePath);
+	String getPathRelativeToClasses(String projectRelativePath);
 
-	public void addResource(ResourceCommand resourceCommand);
+	void addResource(ResourceCommand resourceCommand);
 
-	public void removeResource(ResourceCommand resourceCommand);
+	void removeResource(ResourceCommand resourceCommand);
 
-	public void updateResource(ResourceCommand resource);
+	void updateResource(ResourceCommand resource);
 	
-	public String getRoot();
+	String getRoot();
 
-	public Map<String, ResourceCommand> getDelayedJarResourceCommands();
+	Map<String, ResourceCommand> getDelayedJarResourceCommands();
 
 	
 }

@@ -31,9 +31,16 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.osgi.service.prefs.BackingStoreException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AlfrescoServerPropertyPage extends PropertyPage implements
 IWorkbenchPropertyPage {
+	
+	
+	
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(AlfrescoServerPropertyPage.class);
 
 	private Composite pathComposite;
 
@@ -118,17 +125,18 @@ IWorkbenchPropertyPage {
 			webappNameText = new Text(pathComposite, SWT.BORDER);
 			webappNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER,
 					true, false, 2, 1));
-			if (StringUtils.isNotBlank(webappName))
+			if (StringUtils.isNotBlank(webappName)) {
 				webappNameText.setText(webappName);
+			}
 		}
 		group = new Group(pathComposite, SWT.NONE);
 		{
 			group.setLayout(new FillLayout(SWT.HORIZONTAL));
-			GridData gd_group = new GridData(SWT.LEFT, SWT.CENTER, false,
+			GridData gdGroup = new GridData(SWT.LEFT, SWT.CENTER, false,
 					false, 1, 1);
-			gd_group.heightHint = 47;
-			gd_group.widthHint = 143;
-			group.setLayoutData(gd_group);
+			gdGroup.heightHint = 47;
+			gdGroup.widthHint = 143;
+			group.setLayoutData(gdGroup);
 			{
 				Button btnRadioButton = new Button(group, SWT.NONE);
 				btnRadioButton.setText("Alfresco");
@@ -154,9 +162,9 @@ IWorkbenchPropertyPage {
 				});
 			}
 			{
-				Button btnRadioButton_1 = new Button(group, SWT.NONE);
-				btnRadioButton_1.setText("Share");
-				btnRadioButton_1.addSelectionListener(new SelectionAdapter() {
+				Button shareRadioButton = new Button(group, SWT.NONE);
+				shareRadioButton.setText("Share");
+				shareRadioButton.addSelectionListener(new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						webappNameText.setText("share");
@@ -182,12 +190,12 @@ IWorkbenchPropertyPage {
 
 		// Path text field
 		serverPathText = new Text(composite, SWT.WRAP | SWT.READ_ONLY);
-		GridData gd_pathValueText = new GridData(SWT.LEFT, SWT.CENTER, true,
+		GridData gdPathValueText = new GridData(SWT.LEFT, SWT.CENTER, true,
 				false, 2, 1);
 
-		gd_pathValueText.horizontalAlignment = GridData.FILL;
+		gdPathValueText.horizontalAlignment = GridData.FILL;
 
-		serverPathText.setLayoutData(gd_pathValueText);
+		serverPathText.setLayoutData(gdPathValueText);
 
 		if (StringUtils.isNotBlank(serverPath)) {
 			serverPathText.setText(serverPath);
