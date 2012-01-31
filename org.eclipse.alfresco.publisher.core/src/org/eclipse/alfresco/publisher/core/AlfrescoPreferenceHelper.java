@@ -36,6 +36,8 @@ public class AlfrescoPreferenceHelper {
 
 	private static final String INCREMENTAL_DEPLOY = "incremental.deploy";
 
+	private static final String VANILLA_WAR_ABSOLUTE_PATH = "vanilla.war.absolute.path";
+
 	private Preferences preference;
 
 	public AlfrescoPreferenceHelper(IProject project) {
@@ -238,6 +240,15 @@ public class AlfrescoPreferenceHelper {
 
 	private String getSharedAbsolutePath() {
 		return path(getServerPath(), "shared");
+	}
+
+	public void setVanillaWarAbsolutePath(String vanillaWar) {
+		preference.put(AlfrescoPreferenceHelper.VANILLA_WAR_ABSOLUTE_PATH, vanillaWar);
+		
+	}
+	
+	public String getVanillaWarAbsolutePath() {
+		return preference.get(AlfrescoPreferenceHelper.VANILLA_WAR_ABSOLUTE_PATH, null);
 	}
 
 	

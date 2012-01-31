@@ -6,20 +6,21 @@ import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.ProjectHelper;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.dialogs.PropertyPage;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.osgi.service.prefs.BackingStoreException;
 
 public class AlfrescoDeploymentPropertyPage extends PropertyPage implements
@@ -31,9 +32,11 @@ IWorkbenchPropertyPage {
 	
 	private Button webappRadioButton;
 	private Button sharedRadioButton;
+	private Label lblVanillaWar;
+	private Text vanillaWarText;
+	private Button vanillaWarButton;
 
 	public AlfrescoDeploymentPropertyPage() {
-		// TODO Auto-generated constructor stub
 	}
 
 	
@@ -58,7 +61,7 @@ IWorkbenchPropertyPage {
 
 		Group grpAmpSettings = new Group(composite, SWT.NONE);
 		grpAmpSettings.setText("AMP settings");
-		grpAmpSettings.setLayout(new GridLayout(2, false));
+		grpAmpSettings.setLayout(new GridLayout(3, false));
 
 		incrementalDeploymentButton = new Button(grpAmpSettings, SWT.CHECK);
 		incrementalDeploymentButton
@@ -74,6 +77,7 @@ IWorkbenchPropertyPage {
 				SWT.CENTER, false, false, 2, 1));
 		incrementalDeploymentButton.setSelection(pref.isIncrementalDeploy());
 		incrementalDeploymentButton.setText("Incremental deployment");
+		new Label(grpAmpSettings, SWT.NONE);
 
 		deploymentModeComposite = new Composite(grpAmpSettings, SWT.NONE);
 		FillLayout fl_deploymentModeComposite = new FillLayout(SWT.HORIZONTAL);
@@ -97,6 +101,7 @@ IWorkbenchPropertyPage {
 		sharedRadioButton.setSelection(false);
 		sharedRadioButton.setEnabled(false);
 		sharedRadioButton.setToolTipText("Not supported yet.");
+		new Label(grpAmpSettings, SWT.NONE);
 
 		Label lblAmpFile = new Label(grpAmpSettings, SWT.NONE);
 		lblAmpFile.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
@@ -106,16 +111,42 @@ IWorkbenchPropertyPage {
 		ampFileText = new Text(grpAmpSettings, SWT.BORDER);
 		ampFileText.setEditable(false);
 		ampFileText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
-				false, 1, 1));
+				false, 2, 1));
 
 		if (StringUtils.isNotBlank(pref.getTargetAmpLocation())) {
 			ampFileText.setText(pref.getTargetAmpLocation() + ".amp");
 		}
 
 		table = new Table(grpAmpSettings, SWT.BORDER | SWT.FULL_SELECTION);
-		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
+		
+		lblVanillaWar = new Label(grpAmpSettings, SWT.NONE);
+		lblVanillaWar.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblVanillaWar.setText("Vanilla war");
+		
+		vanillaWarText = new Text(grpAmpSettings, SWT.BORDER);
+		vanillaWarText.setEditable(false);
+		vanillaWarText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		if(StringUtils.isNotBlank(pref.getVanillaWarAbsolutePath())){
+			vanillaWarText.setText(pref.getVanillaWarAbsolutePath());
+		}
+		
+		vanillaWarButton = new Button(grpAmpSettings, SWT.NONE);
+		vanillaWarButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				FileDialog directoryDialog = new FileDialog(getShell());
+				directoryDialog.setFilterExtensions(new String[] {"*.war"});
+				String orig = directoryDialog.open();
+				if(StringUtils.isNotBlank(orig)) {
+					vanillaWarText.setText(orig);
+				}
+			}
+		});
+		vanillaWarButton.setText("...");
 
 		return composite;
 	}
@@ -134,6 +165,9 @@ IWorkbenchPropertyPage {
 			errorMessage.append("Deployement mode must be choosen\n");
 		}
 		pref.setIncrementalDeploy(incrementalDeploymentButton.getSelection());
+		if(StringUtils.isNotBlank(vanillaWarText.getText())) {
+			pref.setVanillaWarAbsolutePath(vanillaWarText.getText());
+		}
 		try {
 			pref.flush();
 		} catch (BackingStoreException e) {
