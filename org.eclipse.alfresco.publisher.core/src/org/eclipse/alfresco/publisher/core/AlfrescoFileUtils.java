@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
 
 public class AlfrescoFileUtils {
 
@@ -44,6 +45,11 @@ public class AlfrescoFileUtils {
 	public void rm(String webappAbsolutePath) throws IOException {
 		rm(new File(webappAbsolutePath));
 
+	}
+	
+	
+	public static String path(String... strings) {
+		return StringUtils.join(strings, File.separator);
 	}
 
 }

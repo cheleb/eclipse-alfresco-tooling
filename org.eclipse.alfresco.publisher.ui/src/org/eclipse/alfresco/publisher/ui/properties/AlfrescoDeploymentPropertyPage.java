@@ -1,10 +1,22 @@
 package org.eclipse.alfresco.publisher.ui.properties;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.alfresco.publisher.core.AMPFile;
 import org.eclipse.alfresco.publisher.core.AlfrescoDeployementException;
+import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.ProjectHelper;
+import org.eclipse.alfresco.publisher.core.helper.AlfrescoMMTHelper;
+import org.eclipse.core.databinding.DataBindingContext;
+import org.eclipse.core.databinding.beans.BeanProperties;
+import org.eclipse.core.databinding.observable.list.WritableList;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jface.databinding.viewers.ViewerSupport;
+import org.eclipse.jface.viewers.CheckboxTableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -24,23 +36,24 @@ import org.eclipse.ui.dialogs.PropertyPage;
 import org.osgi.service.prefs.BackingStoreException;
 
 public class AlfrescoDeploymentPropertyPage extends PropertyPage implements
-IWorkbenchPropertyPage {
+		IWorkbenchPropertyPage {
 	private Text ampFileText;
-	private Table table;
 	private Button incrementalDeploymentButton;
 	private Composite deploymentModeComposite;
-	
+
 	private Button webappRadioButton;
 	private Button sharedRadioButton;
 	private Label lblVanillaWar;
 	private Text vanillaWarText;
 	private Button vanillaWarButton;
 
+	private Table table;
+	private WritableList list;
+	private Button btnReloadAmpList;
+
 	public AlfrescoDeploymentPropertyPage() {
 	}
 
-	
-		
 	@Override
 	public Control createContents(Composite parent) {
 		IProject project = ProjectHelper.getProject(getElement());
@@ -57,7 +70,6 @@ IWorkbenchPropertyPage {
 		data.grabExcessHorizontalSpace = true;
 		composite.setLayoutData(data);
 		composite.setLayout(new FillLayout(SWT.HORIZONTAL));
-
 
 		Group grpAmpSettings = new Group(composite, SWT.NONE);
 		grpAmpSettings.setText("AMP settings");
@@ -92,12 +104,12 @@ IWorkbenchPropertyPage {
 
 		webappRadioButton = new Button(deploymentModeComposite, SWT.RADIO);
 		webappRadioButton.setText("Webapp");
-		//webappRadioButton.setSelection("Webapp".equals(pref.getDeploymentMode()));
+		// webappRadioButton.setSelection("Webapp".equals(pref.getDeploymentMode()));
 		webappRadioButton.setSelection(true);
 
 		sharedRadioButton = new Button(deploymentModeComposite, SWT.RADIO);
 		sharedRadioButton.setText("Shared");
-		//sharedRadioButton.setSelection("Shared".equals(pref.getDeploymentMode()));
+		// sharedRadioButton.setSelection("Shared".equals(pref.getDeploymentMode()));
 		sharedRadioButton.setSelection(false);
 		sharedRadioButton.setEnabled(false);
 		sharedRadioButton.setToolTipText("Not supported yet.");
@@ -117,31 +129,50 @@ IWorkbenchPropertyPage {
 			ampFileText.setText(pref.getTargetAmpLocation() + ".amp");
 		}
 
-		table = new Table(grpAmpSettings, SWT.BORDER | SWT.FULL_SELECTION);
+		CheckboxTableViewer viewer = CheckboxTableViewer.newCheckList(
+				grpAmpSettings, SWT.BORDER | SWT.FULL_SELECTION);
+
+		table = viewer.getTable();
+		// table = new Table(grpAmpSettings, SWT.BORDER | SWT.FULL_SELECTION);
 		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
+
+		createTableViewer(viewer, pref);
 		
+		btnReloadAmpList = new Button(grpAmpSettings, SWT.NONE);
+		btnReloadAmpList.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				loadAMP(pref);
+			}
+		});
+		btnReloadAmpList.setText("Reload AMP List");
+		new Label(grpAmpSettings, SWT.NONE);
+		new Label(grpAmpSettings, SWT.NONE);
+
 		lblVanillaWar = new Label(grpAmpSettings, SWT.NONE);
-		lblVanillaWar.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblVanillaWar.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
+				false, 1, 1));
 		lblVanillaWar.setText("Vanilla war");
-		
+
 		vanillaWarText = new Text(grpAmpSettings, SWT.BORDER);
 		vanillaWarText.setEditable(false);
-		vanillaWarText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		if(StringUtils.isNotBlank(pref.getVanillaWarAbsolutePath())){
+		vanillaWarText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
+				false, 1, 1));
+
+		if (StringUtils.isNotBlank(pref.getVanillaWarAbsolutePath())) {
 			vanillaWarText.setText(pref.getVanillaWarAbsolutePath());
 		}
-		
+
 		vanillaWarButton = new Button(grpAmpSettings, SWT.NONE);
 		vanillaWarButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				FileDialog directoryDialog = new FileDialog(getShell());
-				directoryDialog.setFilterExtensions(new String[] {"*.war"});
+				directoryDialog.setFilterExtensions(new String[] { "*.war" });
 				String orig = directoryDialog.open();
-				if(StringUtils.isNotBlank(orig)) {
+				if (StringUtils.isNotBlank(orig)) {
 					vanillaWarText.setText(orig);
 				}
 			}
@@ -150,6 +181,77 @@ IWorkbenchPropertyPage {
 
 		return composite;
 	}
+
+	private void createTableViewer(CheckboxTableViewer viewer,
+			AlfrescoPreferenceHelper pref) {
+
+		DataBindingContext dbc = new DataBindingContext();
+
+		viewer.getTable().setHeaderVisible(true);
+
+		{
+			TableViewerColumn moduleName = new TableViewerColumn(viewer,
+					SWT.LEFT);
+			moduleName.getColumn().setText("Module name");
+			moduleName.getColumn().setWidth(299);
+			moduleName.setEditingSupport(new InlineStringEditingSupport(viewer,
+					dbc, "moduleName"));
+		}
+
+		{
+			TableViewerColumn version = new TableViewerColumn(viewer, SWT.LEFT);
+			version.getColumn().setText("version");
+			version.getColumn().setWidth(60);
+			version.setEditingSupport(new InlineStringEditingSupport(viewer,
+					dbc, "version"));
+		}
+
+		{
+			TableViewerColumn installDate = new TableViewerColumn(viewer,
+					SWT.LEFT);
+			installDate.getColumn().setText("Install date");
+			installDate.getColumn().setWidth(150);
+			installDate.setEditingSupport(new InlineStringEditingSupport(
+					viewer, dbc, "installDate"));
+		}
+
+		
+		
+
+		list = new WritableList(new ArrayList<AMPFile>(), AMPFile.class);
+		ViewerSupport.bind(
+				viewer,
+				list,
+				BeanProperties.values(new String[] { "moduleName", "version",
+						"installDate" }));
+
+		loadAMP(pref);
+
+	}
+
+	protected void loadAMP(AlfrescoPreferenceHelper pref) {
+		AlfrescoFileUtils alfrescoFileUtils;
+		try {
+			setErrorMessage(null);
+			alfrescoFileUtils = new AlfrescoFileUtils(pref.getServerPath(),
+					pref.getWebappName());
+		} catch (AlfrescoDeployementException e) {
+			setErrorMessage(e.getLocalizedMessage());
+			return;
+		}
+
+		AlfrescoMMTHelper alfrescoMMTHelper = new AlfrescoMMTHelper(
+				(IProject) getElement().getAdapter(IProject.class),
+				alfrescoFileUtils);
+
+		List<AMPFile> ampFiles2 = alfrescoMMTHelper.getAMPFiles();
+
+		for (AMPFile ampFile : ampFiles2) {
+			list.add(ampFile);
+		}
+	}
+	
+	
 
 	@Override
 	public boolean performOk() {
@@ -165,7 +267,7 @@ IWorkbenchPropertyPage {
 			errorMessage.append("Deployement mode must be choosen\n");
 		}
 		pref.setIncrementalDeploy(incrementalDeploymentButton.getSelection());
-		if(StringUtils.isNotBlank(vanillaWarText.getText())) {
+		if (StringUtils.isNotBlank(vanillaWarText.getText())) {
 			pref.setVanillaWarAbsolutePath(vanillaWarText.getText());
 		}
 		try {

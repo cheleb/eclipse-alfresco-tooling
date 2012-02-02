@@ -22,4 +22,5 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.debug.ui;bundle-version="3.7.101"
 Bundle-RequiredExecutionEnvironment:  JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Export-Package: org.eclipse.alfresco.publisher.core
+Export-Package: org.eclipse.alfresco.publisher.core,
+ org.eclipse.alfresco.publisher.core.helper

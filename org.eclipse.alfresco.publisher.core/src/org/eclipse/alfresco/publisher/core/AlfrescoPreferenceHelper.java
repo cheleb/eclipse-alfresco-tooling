@@ -1,5 +1,7 @@
 package org.eclipse.alfresco.publisher.core;
 
+import static org.eclipse.alfresco.publisher.core.AlfrescoFileUtils.path;
+
 import java.io.File;
 
 import org.codehaus.plexus.util.StringUtils;
@@ -208,9 +210,7 @@ public class AlfrescoPreferenceHelper {
 		return null;
 	}
 
-	private String path(String... strings) {
-		return StringUtils.join(strings, File.separator);
-	}
+	
 
 	public boolean ignoreClasses() {
 		// TODO Auto-generated method stub
