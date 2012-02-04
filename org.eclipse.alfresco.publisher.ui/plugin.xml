@@ -93,17 +93,17 @@
             </separator>
          </menu>
          <action
-               class="org.eclipse.alfresco.publisher.ui.popup.actions.DeployJar"
+               class="org.eclipse.alfresco.publisher.ui.popup.actions.StartServer"
                enablesFor="1"
-               id="org.eclipse.alfresco.publisher.ui.action.deployJar"
-               label="Deploy Jar"
+               id="org.eclipse.alfresco.publisher.ui.action.startServer"
+               label="Start Server"
                menubarPath="org.eclipse.alfresco.publisher.ui.menu/deploy">
          </action>
          <action
-               class="org.eclipse.alfresco.publisher.ui.popup.actions.CleanDeployJar"
+               class="org.eclipse.alfresco.publisher.ui.popup.actions.StopServer"
                enablesFor="1"
-               id="org.eclipse.alfresco.publisher.ui.action.deployJar"
-               label="Clean Deploy Jar"
+               id="org.eclipse.alfresco.publisher.ui.action.stopServer"
+               label="Stop Server"
                menubarPath="org.eclipse.alfresco.publisher.ui.menu/deploy">
          </action>
           <action

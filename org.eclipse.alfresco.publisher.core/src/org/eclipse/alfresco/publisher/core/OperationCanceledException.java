@@ -1,4 +1,4 @@
-package org.eclipse.alfresco.publisher.ui;
+package org.eclipse.alfresco.publisher.core;
 
 
 public class OperationCanceledException extends RuntimeException {

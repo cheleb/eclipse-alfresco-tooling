@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.MavenLaunchHelper;
-import org.eclipse.alfresco.publisher.ui.OperationCanceledException;
+import org.eclipse.alfresco.publisher.core.OperationCanceledException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.DebugException;
@@ -45,12 +45,6 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 	private Shell shell;
 	private ISelection selection;
 
-	/**
-	 * @see IObjectActionDelegate#setActivePart(IAction, IWorkbenchPart)
-	 */
-	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
-		shell = targetPart.getSite().getShell();
-	}
 
 	/**
 	 * @see IActionDelegate#run(IAction)
@@ -131,34 +125,7 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 	}
 
-	void startServer(AlfrescoPreferenceHelper preferences) throws IOException {
-		ProcessBuilder processBuilder = null;
-		Map<String, String> environment = null;
-		if (preferences.isAlfresco()) {
-			processBuilder = new ProcessBuilder("scripts/ctl.sh", "start");
-			environment = processBuilder.environment();
-			environment.put("CATALINA_PID", preferences.getServerPath()
-					+ "/temp/catalina.pid");
-			// processBuilder = new ProcessBuilder("bin/startup.sh");
-			// processBuilder.directory(new File(serverPath).getParentFile());
-
-		} else {
-			processBuilder = new ProcessBuilder("bin/startup.sh");
-			environment = processBuilder.environment();
-			environment
-					.put("JAVA_OPTS",
-							"-XX:MaxPermSize=512m -Xms128m -Xmx768m -Dalfresco.home=/Applications/alfresco-4.0.b -Dcom.sun.management.jmxremote -Dsun.security.ssl.allowUnsafeRenegotiation=true");
-		}
-		processBuilder.directory(new File(preferences.getServerPath()));
-
-		Process start = processBuilder.start();
-		try {
-			start.waitFor();
-		} catch (InterruptedException e) {
-			throw new OperationCanceledException(e.getLocalizedMessage(), e);
-		}
-
-	}
+	
 
 	protected IProject getProject() {
 		if (selection instanceof IStructuredSelection) {
@@ -219,33 +186,14 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 	protected abstract String getGoals();
 
-	void stopServer(AlfrescoPreferenceHelper preferences) throws IOException {
+	
 
-		ProcessBuilder processBuilder;
-		if (preferences.isAlfresco()) {
-			processBuilder = new ProcessBuilder("scripts/ctl.sh", "stop");
-		} else {
-
-			processBuilder = new ProcessBuilder(
-					"java",
-					"-cp",
-					"bin/bootstrap.jar:bin/commons-daemon.jar:bin/tomcat-juli.jar",
-					"org.apache.catalina.startup.Bootstrap", "stop");
-		}
-		processBuilder.directory(new File(preferences.getServerPath()));
-
-		Process start = processBuilder.start();
-		try {
-			int r = start.waitFor();
-			LOGGER.info("Stopping "
-					+ (preferences.isAlfresco() ? "alfresco" : "share") + ": "
-					+ (r == 0 ? "OK" : "ERROR"));
-		} catch (InterruptedException e) {
-			LOGGER.error(e.getLocalizedMessage(), e);
-		}
-
+	/**
+	 * @see IObjectActionDelegate#setActivePart(IAction, IWorkbenchPart)
+	 */
+	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
+		shell = targetPart.getSite().getShell();
 	}
-
 	/**
 	 * @see IActionDelegate#selectionChanged(IAction, ISelection)
 	 */

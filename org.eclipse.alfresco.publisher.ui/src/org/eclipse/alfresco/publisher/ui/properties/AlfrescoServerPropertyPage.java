@@ -7,7 +7,7 @@ import java.net.URL;
 import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.ProjectHelper;
-import org.eclipse.alfresco.publisher.core.ServerHelper;
+import org.eclipse.alfresco.publisher.core.helper.ServerHelper;
 import org.eclipse.alfresco.publisher.ui.AlfrescoPublisherUIActivator;
 import org.eclipse.alfresco.publisher.ui.preferences.PreferenceConstants;
 import org.eclipse.core.resources.IProject;

@@ -5,7 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
-import org.eclipse.alfresco.publisher.ui.OperationCanceledException;
+import org.eclipse.alfresco.publisher.core.OperationCanceledException;
+import org.eclipse.alfresco.publisher.core.helper.ServerHelper;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -89,7 +90,7 @@ public class AMPDeployRunnable implements IRunnableWithProgress {
 		}
 
 		monitor.subTask("Stopping server");
-		alfrescoDeploy.stopServer(preferences);
+		ServerHelper.stopServer(preferences);
 		if (monitor.isCanceled()) {
 			LOGGER.info("Canceled");
 			return;
@@ -113,7 +114,7 @@ public class AMPDeployRunnable implements IRunnableWithProgress {
 
 		alfrescoDeploy.cleanBackupFile(preferences, monitor);
 
-		alfrescoDeploy.startServer(preferences);
+		ServerHelper.startServer(preferences);
 		monitor.worked(1);
 	}
 }
