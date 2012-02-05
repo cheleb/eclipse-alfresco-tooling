@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
@@ -27,7 +26,7 @@ import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
-
+import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 import org.slf4j.Logger;
@@ -147,7 +146,7 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 	void build(IProject project, final IProgressMonitor monitor) {
 
-		String goals = getGoals();
+		String goals = getGoals() + " -o";
 
 		final ILaunchConfiguration launchConf = MavenLaunchHelper
 				.createLaunchConfiguration(project, goals);

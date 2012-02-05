@@ -1,9 +1,8 @@
 package org.eclipse.alfresco.publisher.ui.preferences;
 
+import org.eclipse.alfresco.publisher.ui.AlfrescoPublisherUIActivator;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
-
-import org.eclipse.alfresco.publisher.ui.AlfrescoPublisherUIActivator;
 
 /**
  * Class used to initialize default preference values.

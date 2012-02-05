@@ -31,17 +31,9 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.osgi.service.prefs.BackingStoreException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AlfrescoServerPropertyPage extends PropertyPage implements
 IWorkbenchPropertyPage {
-	
-	
-	
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(AlfrescoServerPropertyPage.class);
-
 	private Composite pathComposite;
 
 	private Text serverPathText;
