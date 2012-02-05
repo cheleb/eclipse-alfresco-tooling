@@ -147,28 +147,6 @@ public class ServerHelper {
 			stopTomcat(preferences);
 		}
 
-		ProcessBuilder processBuilder;
-		if (preferences.isAlfresco()) {
-			processBuilder = new ProcessBuilder("scripts/ctl.sh", "stop");
-		} else {
-
-			processBuilder = new ProcessBuilder(
-					"java",
-					"-cp",
-					"bin/bootstrap.jar:bin/commons-daemon.jar:bin/tomcat-juli.jar",
-					"org.apache.catalina.startup.Bootstrap", "stop");
-		}
-		processBuilder.directory(new File(preferences.getServerPath()));
-
-		Process start = processBuilder.start();
-		try {
-			int r = start.waitFor();
-			LOGGER.info("Stopping "
-					+ (preferences.isAlfresco() ? "alfresco" : "share") + ": "
-					+ (r == 0 ? "OK" : "ERROR"));
-		} catch (InterruptedException e) {
-			throw new OperationCanceledException(e.getLocalizedMessage(), e);
-		}
 	}
 
 	private static void stopTomcat(AlfrescoPreferenceHelper preferences)
@@ -202,7 +180,8 @@ public class ServerHelper {
 			Process start = processBuilder.start();
 			try {
 				int r = start.waitFor();
-				LOGGER.info("Stopping alfresco: " + (r == 0 ? "OK" : "ERROR"));
+				LOGGER.info("Stopping alfresco: "
+						+ (r == 0 ? "OK" : "ERROR(" + r + ")"));
 			} catch (InterruptedException e) {
 				throw new OperationCanceledException(e.getLocalizedMessage(), e);
 			}
