@@ -46,7 +46,7 @@ public class StartServer implements IObjectActionDelegate {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException,
 					InterruptedException {
 					try {
-						ServerHelper.startServer(preferences);
+						ServerHelper.startServer(preferences, monitor);
 					} catch (IOException e) {
 						throw new InvocationTargetException(e);
 					}

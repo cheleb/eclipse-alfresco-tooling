@@ -90,7 +90,7 @@ public class AMPDeployRunnable implements IRunnableWithProgress {
 		}
 
 		monitor.subTask("Stopping server");
-		ServerHelper.stopServer(preferences);
+		ServerHelper.stopServer(preferences, monitor);
 		if (monitor.isCanceled()) {
 			LOGGER.info("Canceled");
 			return;
@@ -114,7 +114,7 @@ public class AMPDeployRunnable implements IRunnableWithProgress {
 
 		alfrescoDeploy.cleanBackupFile(preferences, monitor);
 
-		ServerHelper.startServer(preferences);
+		ServerHelper.startServer(preferences, monitor);
 		monitor.worked(1);
 	}
 }

@@ -46,7 +46,7 @@ public class StopServer implements IObjectActionDelegate {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException,
 					InterruptedException {
 					try {
-						ServerHelper.stopServer(preferences);
+						ServerHelper.stopServer(preferences, monitor);
 					} catch (IOException e) {
 						throw new InvocationTargetException(e);
 					}

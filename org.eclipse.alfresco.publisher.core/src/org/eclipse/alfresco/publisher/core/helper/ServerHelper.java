@@ -26,6 +26,7 @@ import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.maven.artifact.resolver.WarningResolutionListener;
 import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.OperationCanceledException;
@@ -138,37 +139,36 @@ public class ServerHelper {
 		return false;
 	}
 
-	public static void stopServer(AlfrescoPreferenceHelper preferences)
-			throws IOException {
+	public static void stopServer(AlfrescoPreferenceHelper preferences,
+			IProgressMonitor monitor) throws IOException {
 
+		Process process;
+		String name;
 		if (preferences.isAlfresco()) {
-			stopAlfresco(preferences);
+			process = getStopAlfrescoProcess(preferences);
+			name = "alfresco";
 		} else {
-			stopTomcat(preferences);
+			process = getStopTomcatProcess(preferences);
+			name = "tomcat";
 		}
 
+		waitProcess(process, monitor, "Stop " + name);
 	}
 
-	private static void stopTomcat(AlfrescoPreferenceHelper preferences)
-			throws IOException {
+	private static Process getStopTomcatProcess(
+			AlfrescoPreferenceHelper preferences) throws IOException {
 		ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp",
 				"bin/bootstrap.jar:bin/commons-daemon.jar:bin/tomcat-juli.jar",
 				"org.apache.catalina.startup.Bootstrap", "stop");
 
 		processBuilder.directory(new File(preferences.getServerPath()));
 
-		Process start = processBuilder.start();
-		try {
-			int r = start.waitFor();
-			LOGGER.info("Stopping tomcat: " + (r == 0 ? "OK" : "ERROR"));
-		} catch (InterruptedException e) {
-			throw new OperationCanceledException(e.getLocalizedMessage(), e);
-		}
+		return processBuilder.start();
 
 	}
 
-	private static void stopAlfresco(AlfrescoPreferenceHelper preferences)
-			throws IOException {
+	private static Process getStopAlfrescoProcess(
+			AlfrescoPreferenceHelper preferences) throws IOException {
 		File catalinaPidFile = new File(preferences.getAlfrescoHome(),
 				AlfrescoFileUtils.path("tomcat", "temp", "catalina.pid"));
 		if (catalinaPidFile.exists()) {
@@ -177,46 +177,97 @@ public class ServerHelper {
 			processBuilder.directory(new File(preferences.getServerPath()));
 			processBuilder.environment().put("CATALINA_PID",
 					catalinaPidFile.getAbsolutePath());
-			Process start = processBuilder.start();
-			try {
-				int r = start.waitFor();
-				LOGGER.info("Stopping alfresco: "
-						+ (r == 0 ? "OK" : "ERROR(" + r + ")"));
-			} catch (InterruptedException e) {
-				throw new OperationCanceledException(e.getLocalizedMessage(), e);
-			}
+			return processBuilder.start();
+		} else {
+			LOGGER.warn("No catalina.pid file found");
 		}
+		return null;
 	}
 
-	public static void startServer(AlfrescoPreferenceHelper preferences)
-			throws IOException {
+	public static void startServer(AlfrescoPreferenceHelper preferences,
+			IProgressMonitor monitor) throws IOException {
+		Process process;
+		String serverName;
+		if (preferences.isAlfresco()) {
+			process = getStartAlfrescoProcess(preferences);
+			serverName = "alfresco";
+		} else {
+			serverName = "tomcat";
+			process = getStartShareProcess(preferences);
+		}
+
+		waitProcess(process, monitor, "start " + serverName);
+
+	}
+
+	private static Process getStartShareProcess(
+			AlfrescoPreferenceHelper preferences) throws IOException {
+		LOGGER.debug("Starting "
+				+ (preferences.isAlfresco() ? "alfreco" : "share"));
 		ProcessBuilder processBuilder = null;
 		Map<String, String> environment = null;
-		if (preferences.isAlfresco()) {
-			processBuilder = new ProcessBuilder("scripts/ctl.sh", "start");
-			environment = processBuilder.environment();
-			environment.put("CATALINA_PID", preferences.getServerPath()
-					+ "/temp/catalina.pid");
-			// processBuilder = new ProcessBuilder("bin/startup.sh");
-			// processBuilder.directory(new File(serverPath).getParentFile());
+		processBuilder = new ProcessBuilder("bin/startup.sh");
+		environment = processBuilder.environment();
+		environment
+				.put("JAVA_OPTS",
+						"-XX:MaxPermSize=512m -Xms128m -Xmx768m -Dalfresco.home="
+								+ preferences.getAlfrescoHome()
+								+ " -Dcom.sun.management.jmxremote -Dsun.security.ssl.allowUnsafeRenegotiation=true");
 
-		} else {
-			processBuilder = new ProcessBuilder("bin/startup.sh");
-			environment = processBuilder.environment();
-			environment
-					.put("JAVA_OPTS",
-							"-XX:MaxPermSize=512m -Xms128m -Xmx768m -Dalfresco.home="
-									+ preferences.getAlfrescoHome()
-									+ " -Dcom.sun.management.jmxremote -Dsun.security.ssl.allowUnsafeRenegotiation=true");
-		}
 		processBuilder.directory(new File(preferences.getServerPath()));
 
-		Process start = processBuilder.start();
-		try {
-			start.waitFor();
-		} catch (InterruptedException e) {
-			throw new OperationCanceledException(e.getLocalizedMessage(), e);
+		return processBuilder.start();
+	}
+
+	private static Process getStartAlfrescoProcess(
+			AlfrescoPreferenceHelper preferences) throws IOException {
+		LOGGER.debug("Starting "
+				+ (preferences.isAlfresco() ? "alfreco" : "share"));
+		ProcessBuilder processBuilder = null;
+		Map<String, String> environment = null;
+		processBuilder = new ProcessBuilder("scripts/ctl.sh", "start");
+		environment = processBuilder.environment();
+		environment.put("CATALINA_PID", preferences.getServerPath()
+				+ "/temp/catalina.pid");
+		processBuilder.directory(new File(preferences.getServerPath()));
+
+		return processBuilder.start();
+
+	}
+
+	private static void waitProcess(final Process start,
+			IProgressMonitor monitor, String name) {
+		if(start==null) {
+			return;
 		}
+		Thread thread = new Thread() {
+			public void run() {
+				try {
+
+					start.waitFor();
+
+				} catch (InterruptedException e) {
+					throw new OperationCanceledException(
+							e.getLocalizedMessage(), e);
+				}
+			};
+		};
+		thread.start();
+
+		long t = 0;
+		while (thread.isAlive()) {
+			try {
+				Thread.sleep(500);
+				t += 500;
+				if (monitor.isCanceled()) {
+					thread.interrupt();
+				}
+				LOGGER.debug("Waiting \"" + name + "\" (" + t + " ms)");
+			} catch (InterruptedException e) {
+				LOGGER.error(e.getLocalizedMessage(), e);
+			}
+		}
+		// TODO Auto-generated method stub
 
 	}
 }
