@@ -173,7 +173,7 @@ public class ServerHelper {
 				AlfrescoFileUtils.path("tomcat", "temp", "catalina.pid"));
 		if (catalinaPidFile.exists()) {
 			ProcessBuilder processBuilder = new ProcessBuilder(
-					"bin/shutdown.sh", "10", "-force");
+					"bin/shutdown.sh", String.valueOf(preferences.getStopTimeout()), "-force");
 			processBuilder.directory(new File(preferences.getServerPath()));
 			processBuilder.environment().put("CATALINA_PID",
 					catalinaPidFile.getAbsolutePath());

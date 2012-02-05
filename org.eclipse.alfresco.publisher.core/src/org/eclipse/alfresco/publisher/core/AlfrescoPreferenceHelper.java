@@ -40,6 +40,8 @@ public class AlfrescoPreferenceHelper {
 
 	private static final String VANILLA_WAR_ABSOLUTE_PATH = "vanilla.war.absolute.path";
 
+	private static final String SERVER_STOP_TIMEOUT = "server.stop.timeout";
+
 	private Preferences preference;
 
 	public AlfrescoPreferenceHelper(IProject project) {
@@ -249,6 +251,11 @@ public class AlfrescoPreferenceHelper {
 	
 	public String getVanillaWarAbsolutePath() {
 		return preference.get(AlfrescoPreferenceHelper.VANILLA_WAR_ABSOLUTE_PATH, null);
+	}
+
+	public int getStopTimeout() {
+
+		return preference.getInt(AlfrescoPreferenceHelper.SERVER_STOP_TIMEOUT, 30);
 	}
 
 	

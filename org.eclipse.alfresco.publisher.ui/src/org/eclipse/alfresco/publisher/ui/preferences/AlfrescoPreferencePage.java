@@ -5,6 +5,7 @@ import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.jface.preference.IntegerFieldEditor;
 
 /**
  * This class represents a preference page that
@@ -39,21 +40,12 @@ public class AlfrescoPreferencePage
 	public void createFieldEditors() {
 		addField(new DirectoryFieldEditor(PreferenceConstants.ALFRESCO_PATH, 
 				"&Alfresco path:", getFieldEditorParent()));
-//		addField(
-//			new BooleanFieldEditor(
-//				PreferenceConstants.P_BOOLEAN,
-//				"&An example of a boolean preference",
-//				getFieldEditorParent()));
-//
-//		addField(new RadioGroupFieldEditor(
-//				PreferenceConstants.P_CHOICE,
-//			"An example of a multiple-choice preference",
-//			1,
-//			new String[][] { { "&Choice 1", "choice1" }, {
-//				"C&hoice 2", "choice2" }
-//		}, getFieldEditorParent()));
-//		addField(
-//			new StringFieldEditor(PreferenceConstants.P_STRING, "A &text preference:", getFieldEditorParent()));
+		{
+			IntegerFieldEditor integerFieldEditor = new IntegerFieldEditor(PreferenceConstants.ALFRESCO_STOP_TIMEOUT_DEFAULT, "Stop timeout", getFieldEditorParent());
+			integerFieldEditor.setStringValue("30");
+			integerFieldEditor.setValidRange(10, 300);
+			addField(integerFieldEditor);
+		}
 	}
 
 	/* (non-Javadoc)

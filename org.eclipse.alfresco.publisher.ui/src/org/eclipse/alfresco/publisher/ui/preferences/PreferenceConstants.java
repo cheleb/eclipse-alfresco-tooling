@@ -6,6 +6,8 @@ package org.eclipse.alfresco.publisher.ui.preferences;
 public class PreferenceConstants {
 
 	public static final String ALFRESCO_PATH = "alfrescoPath";
+	
+	public static final String ALFRESCO_STOP_TIMEOUT_DEFAULT = "alfresco.stop.timeout.default";
 
 	public static final String P_BOOLEAN = "booleanPreference";
 
