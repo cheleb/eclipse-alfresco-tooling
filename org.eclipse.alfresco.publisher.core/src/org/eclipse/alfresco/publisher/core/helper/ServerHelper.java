@@ -26,6 +26,7 @@ import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
+import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.OperationCanceledException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -140,6 +141,12 @@ public class ServerHelper {
 	public static void stopServer(AlfrescoPreferenceHelper preferences)
 			throws IOException {
 
+		if (preferences.isAlfresco()) {
+			stopAlfresco(preferences);
+		} else {
+			stopTomcat(preferences);
+		}
+
 		ProcessBuilder processBuilder;
 		if (preferences.isAlfresco()) {
 			processBuilder = new ProcessBuilder("scripts/ctl.sh", "stop");
@@ -164,6 +171,44 @@ public class ServerHelper {
 		}
 	}
 
+	private static void stopTomcat(AlfrescoPreferenceHelper preferences)
+			throws IOException {
+		ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp",
+				"bin/bootstrap.jar:bin/commons-daemon.jar:bin/tomcat-juli.jar",
+				"org.apache.catalina.startup.Bootstrap", "stop");
+
+		processBuilder.directory(new File(preferences.getServerPath()));
+
+		Process start = processBuilder.start();
+		try {
+			int r = start.waitFor();
+			LOGGER.info("Stopping tomcat: " + (r == 0 ? "OK" : "ERROR"));
+		} catch (InterruptedException e) {
+			throw new OperationCanceledException(e.getLocalizedMessage(), e);
+		}
+
+	}
+
+	private static void stopAlfresco(AlfrescoPreferenceHelper preferences)
+			throws IOException {
+		File catalinaPidFile = new File(preferences.getAlfrescoHome(),
+				AlfrescoFileUtils.path("tomcat", "temp", "catalina.pid"));
+		if (catalinaPidFile.exists()) {
+			ProcessBuilder processBuilder = new ProcessBuilder(
+					"bin/shutdown.sh", "10", "-force");
+			processBuilder.directory(new File(preferences.getServerPath()));
+			processBuilder.environment().put("CATALINA_PID",
+					catalinaPidFile.getAbsolutePath());
+			Process start = processBuilder.start();
+			try {
+				int r = start.waitFor();
+				LOGGER.info("Stopping alfresco: " + (r == 0 ? "OK" : "ERROR"));
+			} catch (InterruptedException e) {
+				throw new OperationCanceledException(e.getLocalizedMessage(), e);
+			}
+		}
+	}
+
 	public static void startServer(AlfrescoPreferenceHelper preferences)
 			throws IOException {
 		ProcessBuilder processBuilder = null;
@@ -181,7 +226,9 @@ public class ServerHelper {
 			environment = processBuilder.environment();
 			environment
 					.put("JAVA_OPTS",
-							"-XX:MaxPermSize=512m -Xms128m -Xmx768m -Dalfresco.home=/Applications/alfresco-4.0.b -Dcom.sun.management.jmxremote -Dsun.security.ssl.allowUnsafeRenegotiation=true");
+							"-XX:MaxPermSize=512m -Xms128m -Xmx768m -Dalfresco.home="
+									+ preferences.getAlfrescoHome()
+									+ " -Dcom.sun.management.jmxremote -Dsun.security.ssl.allowUnsafeRenegotiation=true");
 		}
 		processBuilder.directory(new File(preferences.getServerPath()));
 
@@ -193,5 +240,4 @@ public class ServerHelper {
 		}
 
 	}
-
 }
