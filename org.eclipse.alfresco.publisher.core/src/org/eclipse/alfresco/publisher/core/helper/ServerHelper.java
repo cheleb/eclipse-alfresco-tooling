@@ -148,7 +148,7 @@ public class ServerHelper {
 		if (preferences.isAlfresco()) {
 			process = getStopAlfrescoProcess(preferences);
 			name = "alfresco";
-			expectedStep = 60;
+			expectedStep = preferences.getStopTimeout();
 		} else {
 			process = getStopTomcatProcess(preferences);
 			name = "tomcat";
