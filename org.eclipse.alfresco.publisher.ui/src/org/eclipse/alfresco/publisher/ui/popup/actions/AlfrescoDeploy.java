@@ -22,6 +22,7 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -74,8 +75,10 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 									&& preferences.isIncrementalDeploy()));
 		} catch (InvocationTargetException e) {
 			LOGGER.error(e.getLocalizedMessage(), e.getCause());
+			MessageDialog.openError(shell, "Error", e.getLocalizedMessage());
 		} catch (InterruptedException e) {
 			LOGGER.error(e.getLocalizedMessage(), e.getCause());
+			MessageDialog.openError(shell, "Error", e.getLocalizedMessage());
 		}
 
 	}

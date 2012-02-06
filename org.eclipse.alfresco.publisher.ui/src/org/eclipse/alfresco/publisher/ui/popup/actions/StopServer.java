@@ -8,6 +8,7 @@ import org.eclipse.alfresco.publisher.core.helper.ServerHelper;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
@@ -39,6 +40,7 @@ public class StopServer implements IObjectActionDelegate {
 		final AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(
 				project);
 		
+		final int expectedSteps = getExpectedStep(preferences);
 		
 		IRunnableWithProgress runnableWithProgress = new IRunnableWithProgress() {
 			
@@ -46,9 +48,12 @@ public class StopServer implements IObjectActionDelegate {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException,
 					InterruptedException {
 					try {
+						monitor.beginTask("Stopping server", expectedSteps);
 						ServerHelper.stopServer(preferences, monitor);
+						monitor.done();
 					} catch (IOException e) {
-						throw new InvocationTargetException(e);
+						monitor.setCanceled(true);
+						throw new InvocationTargetException(e, e.getLocalizedMessage());
 					}
 				
 			}
@@ -58,13 +63,24 @@ public class StopServer implements IObjectActionDelegate {
 			new ProgressMonitorDialog(shell).run(true, true,runnableWithProgress);
 		} catch (InvocationTargetException e) {
 			LOGGER.error(e.getLocalizedMessage(), e.getCause());
+			MessageDialog.openError(shell, "Error", e.getLocalizedMessage());
 		} catch (InterruptedException e) {
 			LOGGER.error(e.getLocalizedMessage(), e.getCause());
+			MessageDialog.openError(shell, "Error", e.getLocalizedMessage());
 		}
 
 	}
 	
 	
+	private int getExpectedStep(AlfrescoPreferenceHelper preferences) {
+		if(preferences.isAlfresco()) {
+			return preferences.getStopTimeout();
+		}else {
+			return 2;
+		}
+	}
+
+
 	protected IProject getProject() {
 		if (selection instanceof IStructuredSelection) {
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;

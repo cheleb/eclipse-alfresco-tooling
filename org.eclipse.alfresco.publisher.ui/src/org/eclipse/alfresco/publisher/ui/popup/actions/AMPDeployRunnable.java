@@ -17,15 +17,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AMPDeployRunnable implements IRunnableWithProgress {
-	
-	
+
 	private static final int DEPLOY_N_TASK = 4;
 
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(AMPDeployRunnable.class);
-	
+
 	private IProject project;
-	
+
 	private boolean deploymentIncrementalCanceled;
 
 	private AlfrescoPreferenceHelper preferences;
@@ -34,7 +33,10 @@ public class AMPDeployRunnable implements IRunnableWithProgress {
 
 	private AlfrescoFileUtils alfrescoFileUtils;
 
-	public AMPDeployRunnable(AlfrescoDeploy alfrescoDeploy, AlfrescoFileUtils alfrescoFileUtils, IProject project, AlfrescoPreferenceHelper preferences, boolean deploymentIncrementalCanceled) {
+	public AMPDeployRunnable(AlfrescoDeploy alfrescoDeploy,
+			AlfrescoFileUtils alfrescoFileUtils, IProject project,
+			AlfrescoPreferenceHelper preferences,
+			boolean deploymentIncrementalCanceled) {
 		this.alfrescoDeploy = alfrescoDeploy;
 		this.alfrescoFileUtils = alfrescoFileUtils;
 		this.project = project;
@@ -43,18 +45,22 @@ public class AMPDeployRunnable implements IRunnableWithProgress {
 	}
 
 	@Override
-	public void run(IProgressMonitor monitor)
-			throws InvocationTargetException, InterruptedException {
-		monitor.beginTask("Reloading", DEPLOY_N_TASK);
+	public void run(IProgressMonitor monitor) throws InvocationTargetException,
+			InterruptedException {
 
-		
+		if (preferences.isAlfresco()) {
+			monitor.beginTask("Stopping alfresco",
+					DEPLOY_N_TASK + preferences.getStopTimeout());
+		} else {
+			monitor.beginTask("Reloading share", DEPLOY_N_TASK);
+		}
 		IFile logFile = project.getFile("target/deployed.log");
 		if (logFile.exists()) {
 			try {
 				logFile.delete(true, monitor);
 			} catch (CoreException e) {
-				LOGGER.error(logFile.getProjectRelativePath()
-						.toOSString() + " could not be reset.", e);
+				LOGGER.error(logFile.getProjectRelativePath().toOSString()
+						+ " could not be reset.", e);
 			}
 		}
 
@@ -62,12 +68,10 @@ public class AMPDeployRunnable implements IRunnableWithProgress {
 			doDeploy(monitor);
 		} catch (IOException e) {
 			LOGGER.error(e.getLocalizedMessage(), e);
-			throw new OperationCanceledException(
-					e.getLocalizedMessage(), e);
+			throw new InvocationTargetException(e, e.getLocalizedMessage());
 		} catch (BackingStoreException e) {
 			LOGGER.error(e.getLocalizedMessage(), e);
-			throw new OperationCanceledException(
-					e.getLocalizedMessage(), e);
+			throw new InvocationTargetException(e, e.getLocalizedMessage());
 		} finally {
 			if (deploymentIncrementalCanceled) {
 				preferences.setIncrementalDeploy(true);

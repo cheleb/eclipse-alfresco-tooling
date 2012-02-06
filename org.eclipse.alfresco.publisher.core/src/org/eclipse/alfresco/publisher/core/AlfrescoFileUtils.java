@@ -48,8 +48,13 @@ public class AlfrescoFileUtils {
 	}
 	
 	
-	public static String path(String... strings) {
-		return StringUtils.join(strings, File.separator);
+	public static String path(String... paths) {
+		return StringUtils.join(paths, File.separator);
+	}
+	
+	public static String pathToShellCommand(String... paths) {
+		
+		return path(paths) + (File.separator.equals("\\")?".bat":".sh");
 	}
 
 }

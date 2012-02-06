@@ -8,6 +8,7 @@ import org.eclipse.alfresco.publisher.core.helper.ServerHelper;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
@@ -48,7 +49,7 @@ public class StartServer implements IObjectActionDelegate {
 					try {
 						ServerHelper.startServer(preferences, monitor);
 					} catch (IOException e) {
-						throw new InvocationTargetException(e);
+						throw new InvocationTargetException(e, e.getLocalizedMessage());
 					}
 				
 			}
@@ -58,8 +59,10 @@ public class StartServer implements IObjectActionDelegate {
 			new ProgressMonitorDialog(shell).run(true, true,runnableWithProgress);
 		} catch (InvocationTargetException e) {
 			LOGGER.error(e.getLocalizedMessage(), e.getCause());
+			MessageDialog.openError(shell, "Error", e.getLocalizedMessage());
 		} catch (InterruptedException e) {
 			LOGGER.error(e.getLocalizedMessage(), e.getCause());
+			MessageDialog.openError(shell, "Error", e.getLocalizedMessage());
 		}
 
 	}

@@ -4,7 +4,6 @@ import static org.eclipse.alfresco.publisher.core.AlfrescoFileUtils.path;
 
 import java.io.File;
 
-import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.security.storage.ISecurePreferences;
@@ -14,6 +13,10 @@ import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 public class AlfrescoPreferenceHelper {
+
+	private static final String DEPLOYMENT_MODE_WEBAPP = "Webapp";
+
+	private static final int TIMEOUT_30 = 30;
 
 	private static final String ALFRESCO_HOME = "alfresco.home";
 
@@ -57,7 +60,7 @@ public class AlfrescoPreferenceHelper {
 	}
 
 	public String getWebappAbsolutePath() {
-		if ("Webapp".equals(getDeploymentMode())) {
+		if (DEPLOYMENT_MODE_WEBAPP.equals(getDeploymentMode())) {
 			if (getServerPath() == null) {
 				return null;
 			}
@@ -100,7 +103,7 @@ public class AlfrescoPreferenceHelper {
 
 	public String getDeploymentMode() {
 		//TODO Implement return preference.get(DEPLOYMENT_MODE, null);
-		return "Webapp";
+		return DEPLOYMENT_MODE_WEBAPP;
 	}
 
 	public String getServerURL() {
@@ -187,11 +190,13 @@ public class AlfrescoPreferenceHelper {
 
 	public String getAmpJarLocation() {
 
-		if (getTargetAmpLocation() == null)
+		if (getTargetAmpLocation() == null) {
 			return null;
+		}
 
-		if (getAmpJarName() == null)
+		if (getAmpJarName() == null) {
 			return null;
+		}
 		return getTargetAmpLocation() + File.separator + "lib"
 				+ getAmpJarName();
 
@@ -204,7 +209,7 @@ public class AlfrescoPreferenceHelper {
 
 	public String getAmpLib() {
 		String mode = getDeploymentMode();
-		if ("Webapp".equals(mode)) {
+		if (DEPLOYMENT_MODE_WEBAPP.equals(mode)) {
 			return path(getWebappAbsolutePath(), "WEB-INF", "lib");
 		} else if ("Shared".equals(mode)) {
 			return path(getServerPath(), "shared", "lib");
@@ -232,10 +237,12 @@ public class AlfrescoPreferenceHelper {
 	}
 
 	public String getDeploymentAbsolutePath() {
-		if ("Shared".equals(getDeploymentMode()))
+		if ("Shared".equals(getDeploymentMode())) {
 			return getSharedAbsolutePath();
-		if ("Webapp".equals(getDeploymentMode()))
+		}
+		if (DEPLOYMENT_MODE_WEBAPP.equals(getDeploymentMode())) {
 			return getWebappAbsolutePath();
+		}
 		return null;
 
 	}
@@ -255,7 +262,7 @@ public class AlfrescoPreferenceHelper {
 
 	public int getStopTimeout() {
 
-		return preference.getInt(AlfrescoPreferenceHelper.SERVER_STOP_TIMEOUT, 30);
+		return preference.getInt(AlfrescoPreferenceHelper.SERVER_STOP_TIMEOUT, TIMEOUT_30);
 	}
 
 	

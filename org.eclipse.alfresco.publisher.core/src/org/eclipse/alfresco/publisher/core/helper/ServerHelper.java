@@ -26,7 +26,6 @@ import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.maven.artifact.resolver.WarningResolutionListener;
 import org.eclipse.alfresco.publisher.core.AlfrescoFileUtils;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
 import org.eclipse.alfresco.publisher.core.OperationCanceledException;
@@ -38,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 public class ServerHelper {
 
+	private static final int THREAD_SLEEP_1000 = 1000;
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(ServerHelper.class);
 
@@ -144,15 +144,22 @@ public class ServerHelper {
 
 		Process process;
 		String name;
+		int expectedStep;
 		if (preferences.isAlfresco()) {
 			process = getStopAlfrescoProcess(preferences);
 			name = "alfresco";
+			expectedStep = 60;
 		} else {
 			process = getStopTomcatProcess(preferences);
 			name = "tomcat";
+			expectedStep = 2;
 		}
 
-		waitProcess(process, monitor, "Stop " + name);
+		int step = waitProcess(process, monitor, "Stop " + name);
+		int unUsedStep = expectedStep - step;
+		if(unUsedStep > 0) {
+			monitor.worked(unUsedStep);
+		}
 	}
 
 	private static Process getStopTomcatProcess(
@@ -172,12 +179,22 @@ public class ServerHelper {
 		File catalinaPidFile = new File(preferences.getAlfrescoHome(),
 				AlfrescoFileUtils.path("tomcat", "temp", "catalina.pid"));
 		if (catalinaPidFile.exists()) {
-			ProcessBuilder processBuilder = new ProcessBuilder(
-					"bin/shutdown.sh", String.valueOf(preferences.getStopTimeout()), "-force");
-			processBuilder.directory(new File(preferences.getServerPath()));
-			processBuilder.environment().put("CATALINA_PID",
-					catalinaPidFile.getAbsolutePath());
-			return processBuilder.start();
+			String shutdownCommandPath = AlfrescoFileUtils.pathToShellCommand(
+					"bin", "shutdown");
+			File directory = new File(preferences.getServerPath());
+			File shutdownCommandFile = new File(directory, shutdownCommandPath);
+			if (shutdownCommandFile.exists()) {
+				ProcessBuilder processBuilder = new ProcessBuilder(
+						shutdownCommandPath, String.valueOf(preferences
+								.getStopTimeout()), "-force");
+				processBuilder.directory(directory);
+				processBuilder.environment().put("CATALINA_PID",
+						catalinaPidFile.getAbsolutePath());
+				return processBuilder.start();
+			} else {
+				throw new IOException("Shutdown command not found: "
+						+ shutdownCommandFile.getAbsolutePath());
+			}
 		} else {
 			LOGGER.warn("No catalina.pid file found");
 		}
@@ -197,6 +214,7 @@ public class ServerHelper {
 		}
 
 		waitProcess(process, monitor, "start " + serverName);
+		
 
 	}
 
@@ -206,17 +224,25 @@ public class ServerHelper {
 				+ (preferences.isAlfresco() ? "alfreco" : "share"));
 		ProcessBuilder processBuilder = null;
 		Map<String, String> environment = null;
-		processBuilder = new ProcessBuilder("bin/startup.sh");
-		environment = processBuilder.environment();
-		environment
-				.put("JAVA_OPTS",
-						"-XX:MaxPermSize=512m -Xms128m -Xmx768m -Dalfresco.home="
-								+ preferences.getAlfrescoHome()
-								+ " -Dcom.sun.management.jmxremote -Dsun.security.ssl.allowUnsafeRenegotiation=true");
+		File directory = new File(preferences.getServerPath());
+		String startCommandPath = AlfrescoFileUtils.pathToShellCommand("bin","startup");
+		File startCommandFile = new File(directory, startCommandPath);
+		if (startCommandFile.exists()) {
+			processBuilder = new ProcessBuilder(startCommandPath);
+			environment = processBuilder.environment();
+			environment
+					.put("JAVA_OPTS",
+							"-XX:MaxPermSize=512m -Xms128m -Xmx768m -Dalfresco.home="
+									+ preferences.getAlfrescoHome()
+									+ " -Dcom.sun.management.jmxremote -Dsun.security.ssl.allowUnsafeRenegotiation=true");
 
-		processBuilder.directory(new File(preferences.getServerPath()));
+			processBuilder.directory(directory);
 
-		return processBuilder.start();
+			return processBuilder.start();
+		}else {
+			throw new IOException("Could not find command: " + startCommandFile.getAbsolutePath());
+		}
+		
 	}
 
 	private static Process getStartAlfrescoProcess(
@@ -225,28 +251,39 @@ public class ServerHelper {
 				+ (preferences.isAlfresco() ? "alfreco" : "share"));
 		ProcessBuilder processBuilder = null;
 		Map<String, String> environment = null;
-		processBuilder = new ProcessBuilder("scripts/ctl.sh", "start");
-		environment = processBuilder.environment();
-		environment.put("CATALINA_PID", preferences.getServerPath()
-				+ "/temp/catalina.pid");
-		processBuilder.directory(new File(preferences.getServerPath()));
+		String startCommandPath = AlfrescoFileUtils.pathToShellCommand(
+				"scripts", "ctl");
+		File directory = new File(preferences.getServerPath());
+		File startCommandFile = new File(directory, startCommandPath);
+		if (startCommandFile.exists()) {
 
-		return processBuilder.start();
+			processBuilder = new ProcessBuilder(startCommandPath, "start");
+			environment = processBuilder.environment();
+			File catalinaPidFile = new File(preferences.getServerPath(), AlfrescoFileUtils.path("temp","catalina.pid"));
+			environment.put("CATALINA_PID", catalinaPidFile.getAbsolutePath());
+			processBuilder.directory(directory);
+
+			return processBuilder.start();
+		} else {
+			throw new IOException("Start command not found: "
+					+ startCommandFile.getAbsolutePath());
+		}
 
 	}
 
-	private static void waitProcess(final Process start,
-			IProgressMonitor monitor, String name) {
-		if(start==null) {
-			return;
+	private static int waitProcess(final Process start,
+			final IProgressMonitor monitor, final String name) {
+		if (start == null) {
+			return 0;
 		}
 		Thread thread = new Thread() {
 			public void run() {
 				try {
-
+					monitor.subTask(name);
 					start.waitFor();
 
 				} catch (InterruptedException e) {
+					monitor.setCanceled(true);
 					throw new OperationCanceledException(
 							e.getLocalizedMessage(), e);
 				}
@@ -254,20 +291,22 @@ public class ServerHelper {
 		};
 		thread.start();
 
-		long t = 0;
+		int s=0;
 		while (thread.isAlive()) {
+			s++;
 			try {
-				Thread.sleep(500);
-				t += 500;
+				Thread.sleep(THREAD_SLEEP_1000);
+				monitor.worked(1);
 				if (monitor.isCanceled()) {
 					thread.interrupt();
 				}
-				LOGGER.debug("Waiting \"" + name + "\" (" + t + " ms)");
 			} catch (InterruptedException e) {
 				LOGGER.error(e.getLocalizedMessage(), e);
+				monitor.setCanceled(true);
 			}
 		}
-		// TODO Auto-generated method stub
+		
+		return s;
 
 	}
 }
