@@ -1,14 +1,19 @@
 package org.eclipse.alfresco.publisher.core.configurator;
 
+import java.io.File;
+
 import org.apache.maven.project.MavenProject;
 import org.eclipse.alfresco.publisher.core.AlfrescoPreferenceHelper;
+import org.eclipse.alfresco.publisher.core.AlfrescoPublisherActivator;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.internal.compiler.problem.ShouldNotImplement;
 import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.osgi.service.prefs.BackingStoreException;
@@ -37,15 +42,20 @@ public class AlfrescoProjectConfigurator extends AbstractProjectConfigurator {
 				.getProjectPreferences(configurationRequest.getProject());
 
 		IPath projectLocation = project.getLocation();
-		String projectLocationAsString = projectLocation.toString()+"/";
+		String projectLocationAsString = projectLocation.toString() + "/";
 
 		String targetDir = mavenProject.getBuild().getDirectory();
+		if (File.separator.equals("\\")) {
+			targetDir = targetDir.replace('\\', '/');
+		}
 
-//		
 		if (targetDir.startsWith(projectLocationAsString)) {
 			targetDir = targetDir.substring(projectLocationAsString.length());
 		} else {
-			throw new CoreException(Status.CANCEL_STATUS);
+			throw new CoreException(new Status(IStatus.ERROR,
+					AlfrescoPublisherActivator.PLUGIN_ID, "Path issue: "
+							+ targetDir + " should start with "
+							+ projectLocationAsString));
 		}
 
 		String artifactId = mavenProject.getArtifactId();
@@ -56,21 +66,20 @@ public class AlfrescoProjectConfigurator extends AbstractProjectConfigurator {
 
 		String ampLibName = String.format("%s-%s.jar", artifactId, version);
 
-		
-
 		try {
-			//projectPreferences.sync();
-			projectPreferences.put(AlfrescoPreferenceHelper.AMP_FOLDER_RELATIVE_PATH, ampFolderPath);
-			
-			projectPreferences.put(AlfrescoPreferenceHelper.AMP_LIB_FILENAME, ampLibName);
-		
-			
-			
+			// projectPreferences.sync();
+			projectPreferences.put(
+					AlfrescoPreferenceHelper.AMP_FOLDER_RELATIVE_PATH,
+					ampFolderPath);
+
+			projectPreferences.put(AlfrescoPreferenceHelper.AMP_LIB_FILENAME,
+					ampLibName);
+
 			projectPreferences.flush();
 		} catch (BackingStoreException e) {
 			LOGGER.error("Could not save preferences.", e);
 		}
-		
+
 		moveBuilderAtTheEnd(monitor, project);
 
 	}
@@ -80,31 +89,32 @@ public class AlfrescoProjectConfigurator extends AbstractProjectConfigurator {
 		IProjectDescription description = project.getDescription();
 		ICommand[] buildSpec = description.getBuildSpec();
 		ICommand[] iCommands = new ICommand[buildSpec.length];
-		int j=0;
+		int j = 0;
 		ICommand alfrescoCommand = null;
 		for (int i = 0; i < buildSpec.length; i++) {
 			ICommand iCommand = buildSpec[i];
-			if("org.eclipse.alfresco.publisher.core.alfrescoResourceBuilder".equals(iCommand.getBuilderName())) {
-				j=1;
+			if ("org.eclipse.alfresco.publisher.core.alfrescoResourceBuilder"
+					.equals(iCommand.getBuilderName())) {
+				j = 1;
 				alfrescoCommand = iCommand;
-			}else {
-				iCommands[i-j]=iCommand;
+			} else {
+				iCommands[i - j] = iCommand;
 			}
 		}
-		if(j>0) {
-			iCommands[iCommands.length-1]=alfrescoCommand;
+		if (j > 0) {
+			iCommands[iCommands.length - 1] = alfrescoCommand;
 		}
 		description.setBuildSpec(iCommands);
 		project.setDescription(description, monitor);
 	}
 
-//	private String getResourceMap(MavenProject mavenProject) {
-//		StringBuilder builder = new StringBuilder();
-//		for(Resource resource: mavenProject.getResources()) {
-//			String targetPath = resource.getTargetPath();
-//			boolean filtered = resource.isFiltering();
-//		}
-//		return builder.toString();
-//	}
+	// private String getResourceMap(MavenProject mavenProject) {
+	// StringBuilder builder = new StringBuilder();
+	// for(Resource resource: mavenProject.getResources()) {
+	// String targetPath = resource.getTargetPath();
+	// boolean filtered = resource.isFiltering();
+	// }
+	// return builder.toString();
+	// }
 
 }
