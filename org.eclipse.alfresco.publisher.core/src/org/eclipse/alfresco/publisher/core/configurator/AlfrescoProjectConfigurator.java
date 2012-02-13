@@ -71,6 +71,12 @@ public class AlfrescoProjectConfigurator extends AbstractProjectConfigurator {
 			LOGGER.error("Could not save preferences.", e);
 		}
 		
+		moveBuilderAtTheEnd(monitor, project);
+
+	}
+
+	protected void moveBuilderAtTheEnd(IProgressMonitor monitor,
+			IProject project) throws CoreException {
 		IProjectDescription description = project.getDescription();
 		ICommand[] buildSpec = description.getBuildSpec();
 		ICommand[] iCommands = new ICommand[buildSpec.length];
@@ -90,7 +96,6 @@ public class AlfrescoProjectConfigurator extends AbstractProjectConfigurator {
 		}
 		description.setBuildSpec(iCommands);
 		project.setDescription(description, monitor);
-
 	}
 
 //	private String getResourceMap(MavenProject mavenProject) {
