@@ -45,7 +45,6 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 	private Shell shell;
 	private ISelection selection;
 
-
 	/**
 	 * @see IActionDelegate#run(IAction)
 	 */
@@ -127,8 +126,6 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 	}
 
-	
-
 	protected IProject getProject() {
 		if (selection instanceof IStructuredSelection) {
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
@@ -176,10 +173,18 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 				try {
 					currentProcess.terminate();
 				} catch (DebugException e) {
-					throw new OperationCanceledException(e.getLocalizedMessage(), e);
+					throw new OperationCanceledException(
+							e.getLocalizedMessage(), e);
 				}
 
 			}
+		}
+		try {
+			if (currentProcess.getExitValue() != 0) {
+				monitor.setCanceled(true);
+			}
+		} catch (DebugException e) {
+			throw new OperationCanceledException(e.getLocalizedMessage(), e);
 		}
 
 	}
@@ -188,14 +193,13 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 	protected abstract String getGoals();
 
-	
-
 	/**
 	 * @see IObjectActionDelegate#setActivePart(IAction, IWorkbenchPart)
 	 */
 	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
 		shell = targetPart.getSite().getShell();
 	}
+
 	/**
 	 * @see IActionDelegate#selectionChanged(IAction, ISelection)
 	 */
