@@ -14,6 +14,8 @@ import org.osgi.service.prefs.Preferences;
 
 public class AlfrescoPreferenceHelper {
 
+	private static final String PASSWORD = "server.reload.password";
+
 	private static final String DEPLOYMENT_MODE_WEBAPP = "Webapp";
 
 	private static final int TIMEOUT_30 = 30;
@@ -47,7 +49,10 @@ public class AlfrescoPreferenceHelper {
 
 	private Preferences preference;
 
+	private IProject project;
+
 	public AlfrescoPreferenceHelper(IProject project) {
+		this.project = project;
 		this.preference = getProjectPreferences(project);
 	}
 
@@ -76,10 +81,8 @@ public class AlfrescoPreferenceHelper {
 		return preference.get(SERVER_ABSOLUTE_PATH, null);
 	}
 
-	
-
 	public String getServerReloadWebscriptURL(String serverUrl, boolean alfresco) {
-		
+
 		if (serverUrl == null) {
 			return null;
 		}
@@ -90,8 +93,7 @@ public class AlfrescoPreferenceHelper {
 			return serverUrl + "/page/index";
 		}
 	}
-	
-	
+
 	public String getServerReloadWebscriptURL() {
 		return getServerReloadWebscriptURL(getServerURL(), isAlfresco());
 
@@ -102,7 +104,7 @@ public class AlfrescoPreferenceHelper {
 	}
 
 	public String getDeploymentMode() {
-		//TODO Implement return preference.get(DEPLOYMENT_MODE, null);
+		// TODO Implement return preference.get(DEPLOYMENT_MODE, null);
 		return DEPLOYMENT_MODE_WEBAPP;
 	}
 
@@ -120,29 +122,42 @@ public class AlfrescoPreferenceHelper {
 		return preferences;
 	}
 
-	public static void storePassword(String projectName, String password)
+	private static boolean isSecuredStorage() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public void storePassword(String password)
 			throws StorageException {
-		ISecurePreferences root = SecurePreferencesFactory.getDefault();
-		ISecurePreferences node = root.node("/org/eclipse/alfresco/"
-				+ projectName);
-		node.put("password", password, true /* encrypt */);
+		if (isSecuredStorage()) {
+			ISecurePreferences root = SecurePreferencesFactory.getDefault();
+			ISecurePreferences node = root.node("/org/eclipse/alfresco/"
+					+ project.getName());
+			node.put(PASSWORD, password, true /* encrypt */);
+		}else {
+			preference.put(PASSWORD, password);
+		}
 
 	}
 
-	public static String getPassword(String projectName)
+
+	public String getPassword()
 			throws StorageException {
-		ISecurePreferences root = SecurePreferencesFactory.getDefault();
-		ISecurePreferences node = root.node("/org/eclipse/alfresco/"
-				+ projectName);
-		return node.get("password", null);
+		if(isSecuredStorage()) {
+			ISecurePreferences root = SecurePreferencesFactory.getDefault();
+			ISecurePreferences node = root.node("/org/eclipse/alfresco/"
+					+ project.getName());
+			return node.get(PASSWORD, null);
+		}else {
+			return preference.get(PASSWORD, null);
+		}
 
 	}
 
 	public boolean isAlfresco() {
 		return isAlfresco(getWebappName());
 	}
-	
-	
+
 	public boolean isAlfresco(String webappName) {
 		// TODO Auto-generated method stub
 		return "alfresco".equals(webappName);
@@ -217,8 +232,6 @@ public class AlfrescoPreferenceHelper {
 		return null;
 	}
 
-	
-
 	public boolean ignoreClasses() {
 		// TODO Auto-generated method stub
 		return true;
@@ -252,21 +265,20 @@ public class AlfrescoPreferenceHelper {
 	}
 
 	public void setVanillaWarAbsolutePath(String vanillaWar) {
-		preference.put(AlfrescoPreferenceHelper.VANILLA_WAR_ABSOLUTE_PATH, vanillaWar);
-		
+		preference.put(AlfrescoPreferenceHelper.VANILLA_WAR_ABSOLUTE_PATH,
+				vanillaWar);
+
 	}
-	
+
 	public String getVanillaWarAbsolutePath() {
-		return preference.get(AlfrescoPreferenceHelper.VANILLA_WAR_ABSOLUTE_PATH, null);
+		return preference.get(
+				AlfrescoPreferenceHelper.VANILLA_WAR_ABSOLUTE_PATH, null);
 	}
 
 	public int getStopTimeout() {
 
-		return preference.getInt(AlfrescoPreferenceHelper.SERVER_STOP_TIMEOUT, TIMEOUT_30);
+		return preference.getInt(AlfrescoPreferenceHelper.SERVER_STOP_TIMEOUT,
+				TIMEOUT_30);
 	}
-
-	
-
-	
 
 }

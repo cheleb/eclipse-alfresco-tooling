@@ -16,9 +16,9 @@ import org.osgi.service.prefs.BackingStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AMPDeployRunnable implements IRunnableWithProgress {
+public class AMPDeployRunnable  {
 
-	private static final int DEPLOY_N_TASK = 4;
+	
 
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(AMPDeployRunnable.class);
@@ -44,16 +44,13 @@ public class AMPDeployRunnable implements IRunnableWithProgress {
 		this.deploymentIncrementalCanceled = deploymentIncrementalCanceled;
 	}
 
-	@Override
+	
 	public void run(IProgressMonitor monitor) throws InvocationTargetException,
 			InterruptedException {
 
-		if (preferences.isAlfresco()) {
-			monitor.beginTask("Stopping alfresco",
-					DEPLOY_N_TASK + preferences.getStopTimeout());
-		} else {
-			monitor.beginTask("Reloading share", DEPLOY_N_TASK);
-		}
+		
+		
+		monitor.worked(1);
 		IFile logFile = project.getFile("target/deployed.log");
 		if (logFile.exists()) {
 			try {
@@ -92,25 +89,25 @@ public class AMPDeployRunnable implements IRunnableWithProgress {
 			preferences.setIncrementalDeploy(false);
 			preferences.flush();
 		}
-
-		monitor.subTask("Stopping server");
+		monitor.worked(1);
+	//	monitor.subTask("Stopping server");
 		ServerHelper.stopServer(preferences, monitor);
 		if (monitor.isCanceled()) {
 			LOGGER.info("Canceled");
 			return;
 		}
 		monitor.worked(1);
-		monitor.subTask("Invoking build");
+	//	monitor.subTask("Invoking build");
 		alfrescoDeploy.build(project, monitor);
 		monitor.worked(1);
 		if (monitor.isCanceled()) {
 			LOGGER.info("Canceled");
 			return;
 		}
-		monitor.subTask("Deploy AMP");
+	//	monitor.subTask("Deploy AMP ");
 		alfrescoDeploy.deploy(project, alfrescoFileUtils, preferences, monitor);
 		monitor.worked(1);
-		monitor.subTask("Starting server");
+//		monitor.subTask("Starting server");
 		if (monitor.isCanceled()) {
 			LOGGER.info("Canceled");
 			return;

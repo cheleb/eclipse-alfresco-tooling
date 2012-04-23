@@ -60,8 +60,7 @@ public class AlfrescoDeployHandler extends AbstractHandler {
 					final String login = preferences.getServerLogin();
 					final String password;
 					try {
-						password = AlfrescoPreferenceHelper.getPassword(project
-								.getName());
+						password = preferences.getPassword();
 					} catch (StorageException e) {
 						MessageDialog.openError(window.getShell(), "Error",
 								e.getMessage());

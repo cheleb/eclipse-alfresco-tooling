@@ -33,13 +33,13 @@ import org.eclipse.ui.dialogs.PropertyPage;
 import org.osgi.service.prefs.BackingStoreException;
 
 public class AlfrescoServerPropertyPage extends PropertyPage implements
-IWorkbenchPropertyPage {
+		IWorkbenchPropertyPage {
 	private Composite pathComposite;
 
 	private Text serverPathText;
 	private Label lblServerPath;
-	
-	//private String alfrescoHome;
+
+	// private String alfrescoHome;
 	private String serverPath;
 	private String webappName;
 	private Text serverUrlText;
@@ -57,19 +57,19 @@ IWorkbenchPropertyPage {
 		super();
 	}
 
-	
-	
-	
 	private void addFirstSection(final Composite parent) {
-		
+
 		IProject project = ProjectHelper.getProject(getElement());
-		
-		final AlfrescoPreferenceHelper pref = new AlfrescoPreferenceHelper(project);
-		
+
+		final AlfrescoPreferenceHelper pref = new AlfrescoPreferenceHelper(
+				project);
+
 		serverPath = pref.getServerPath();
 		String alfrescoHome = pref.getAlfrescoHome();
-		if(StringUtils.isBlank(alfrescoHome)) {
-			alfrescoHome = AlfrescoPublisherUIActivator.getDefault().getPreferenceStore().getString(PreferenceConstants.ALFRESCO_PATH);
+		if (StringUtils.isBlank(alfrescoHome)) {
+			alfrescoHome = AlfrescoPublisherUIActivator.getDefault()
+					.getPreferenceStore()
+					.getString(PreferenceConstants.ALFRESCO_PATH);
 		}
 		webappName = pref.getWebappName();
 
@@ -124,8 +124,8 @@ IWorkbenchPropertyPage {
 		group = new Group(pathComposite, SWT.NONE);
 		{
 			group.setLayout(new FillLayout(SWT.HORIZONTAL));
-			GridData gdGroup = new GridData(SWT.LEFT, SWT.CENTER, false,
-					false, 1, 1);
+			GridData gdGroup = new GridData(SWT.LEFT, SWT.CENTER, false, false,
+					1, 1);
 			gdGroup.heightHint = 47;
 			gdGroup.widthHint = 143;
 			group.setLayoutData(gdGroup);
@@ -140,17 +140,19 @@ IWorkbenchPropertyPage {
 						if (StringUtils.isEmpty(serverPathText.getText())
 								&& StringUtils.isNotEmpty(alfrescoHomeText
 										.getText())) {
-							serverPathText.setText(alfrescoHomeText.getText() + File.separator + "tomcat");
+							serverPathText.setText(alfrescoHomeText.getText()
+									+ File.separator + "tomcat");
 						}
-						if(StringUtils.isBlank(serverUrlText.getText())){
-							serverUrlText.setText("http://localhost:8080/alfresco");
+						if (StringUtils.isBlank(serverUrlText.getText())) {
+							serverUrlText
+									.setText("http://localhost:8080/alfresco");
 						}
-						if(StringUtils.isBlank(login.getText())) {
+						if (StringUtils.isBlank(login.getText())) {
 							login.setText("admin");
 						}
 
 					}
-					
+
 				});
 			}
 			{
@@ -163,15 +165,17 @@ IWorkbenchPropertyPage {
 						if (StringUtils.isEmpty(serverPathText.getText())
 								&& StringUtils.isNotEmpty(alfrescoHomeText
 										.getText())) {
-							serverPathText.setText(alfrescoHomeText.getText() + File.separator + "tomcat");
+							serverPathText.setText(alfrescoHomeText.getText()
+									+ File.separator + "tomcat");
 						}
-						if(StringUtils.isBlank(serverUrlText.getText())){
-							serverUrlText.setText("http://localhost:8080/share");
+						if (StringUtils.isBlank(serverUrlText.getText())) {
+							serverUrlText
+									.setText("http://localhost:8080/share");
 						}
-						if(StringUtils.isBlank(login.getText())) {
+						if (StringUtils.isBlank(login.getText())) {
 							login.setText("admin");
 						}
-						
+
 					}
 				});
 			}
@@ -202,8 +206,8 @@ IWorkbenchPropertyPage {
 			lblServerUrl.setText("Server URL");
 		}
 		serverUrlText = new Text(pathComposite, SWT.BORDER);
-		serverUrlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false,
-				3, 1));
+		serverUrlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,
+				false, 3, 1));
 		{
 			String urlSaved = pref.getServerURL();
 			if (urlSaved != null) {
@@ -236,8 +240,9 @@ IWorkbenchPropertyPage {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 
-					String reloadURL = pref
-							.getServerReloadWebscriptURL(serverUrlText.getText(), pref.isAlfresco(webappNameText.getText()));
+					String reloadURL = pref.getServerReloadWebscriptURL(
+							serverUrlText.getText(),
+							pref.isAlfresco(webappNameText.getText()));
 
 					if (ServerHelper.reload(reloadURL, login.getText(),
 							password.getText(), new NullProgressMonitor())) {
@@ -262,8 +267,7 @@ IWorkbenchPropertyPage {
 		{
 			try {
 
-				String pwd = AlfrescoPreferenceHelper.getPassword(project
-						.getName());
+				String pwd = pref.getPassword();
 				if (StringUtils.isNotBlank(pwd)) {
 					password.setText(pwd);
 				}
@@ -319,18 +323,18 @@ IWorkbenchPropertyPage {
 			setErrorMessage("Maven update project configuration must be run on project.");
 
 		}
-		
+
 		Composite composite = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
 		composite.setLayout(layout);
 		GridData data = new GridData(GridData.FILL);
 		data.grabExcessHorizontalSpace = true;
 		composite.setLayoutData(data);
-		
+
 		addFirstSection(composite);
 		addSeparator(composite);
 		addSecondSection(composite);
-		
+
 		return composite;
 	}
 
@@ -355,8 +359,6 @@ IWorkbenchPropertyPage {
 
 	}
 
-
-	
 	public boolean performOk() {
 		// store the value in the owner text field
 		StringBuilder errorMessage = new StringBuilder();
@@ -364,7 +366,7 @@ IWorkbenchPropertyPage {
 			IProject project = ProjectHelper.getProject(getElement());
 			AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(
 					project);
-			
+
 			if (StringUtils.isBlank(serverPathText.getText())) {
 				errorMessage.append("ServerPath must be set\n");
 			} else {
@@ -375,8 +377,6 @@ IWorkbenchPropertyPage {
 			} else {
 				preferences.stageWebappName(webappNameText.getText());
 			}
-			
-			String projectName = project.getName();
 
 			if (StringUtils.isBlank(alfrescoHomeText.getText())) {
 				errorMessage.append("Alfresco Home must be set.\n");
@@ -392,8 +392,7 @@ IWorkbenchPropertyPage {
 				preferences.stageServerLogin(login.getText());
 			}
 			if (StringUtils.isNotBlank(password.getText())) {
-				AlfrescoPreferenceHelper.storePassword(projectName,
-						password.getText());
+				preferences.storePassword(password.getText());
 			}
 
 			if (errorMessage.length() > 0) {
@@ -402,8 +401,6 @@ IWorkbenchPropertyPage {
 			}
 
 			preferences.flush();
-
-			
 
 		} catch (BackingStoreException e) {
 			// TODO Auto-generated catch block

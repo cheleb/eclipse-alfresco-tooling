@@ -279,7 +279,6 @@ public class ServerHelper {
 		Thread thread = new Thread() {
 			public void run() {
 				try {
-					monitor.subTask(name);
 					start.waitFor();
 
 				} catch (InterruptedException e) {
