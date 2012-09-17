@@ -1,4 +1,4 @@
-package org.eclipse.alfresco.publisher.core;
+package core.helper;
 
 import java.io.File;
 import java.io.IOException;

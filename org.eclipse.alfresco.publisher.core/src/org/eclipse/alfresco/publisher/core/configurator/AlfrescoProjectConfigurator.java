@@ -13,7 +13,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jdt.internal.compiler.problem.ShouldNotImplement;
 import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.osgi.service.prefs.BackingStoreException;
@@ -68,6 +67,8 @@ public class AlfrescoProjectConfigurator extends AbstractProjectConfigurator {
 
 		try {
 			// projectPreferences.sync();
+			projectPreferences.put(AlfrescoPreferenceHelper.TARGET, targetDir);
+
 			projectPreferences.put(
 					AlfrescoPreferenceHelper.AMP_FOLDER_RELATIVE_PATH,
 					ampFolderPath);

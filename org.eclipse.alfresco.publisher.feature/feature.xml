@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.alfresco.publisher.feature"
       label="Alfresco Publisher"
-      version="0.0.1.qualifier">
+      version="0.0.2.qualifier">
 
    <description>
       Eclipse plugin for support for maven AMP project for Alfresco.

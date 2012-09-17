@@ -26,7 +26,6 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
@@ -39,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 
 	private static final int DEPLOY_N_TASK = 4;
-	
+
 	private static final int THREAD_SLEEP_1000 = 1000;
 
 	private static final int DEFAULT_WAR_BACKUP_FILE_KEEP_4 = 4;
@@ -69,76 +68,73 @@ public abstract class AlfrescoDeploy implements IObjectActionDelegate {
 				project);
 
 		final AlfrescoFileUtils alfrescoFileUtils = new AlfrescoFileUtils(
-				preferences.getServerPath(), preferences.getWebappName());
+				preferences.getServerPath(), preferences.getWebappName(),
+				preferences.getTargetDir());
 
 		Job job = new Job("Deploy") {
 
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 
-				
-//				 monitor.beginTask("My job is working...", 100);
-//			        for (int i = 0; i < 100; i++) {
-//			            try {
-//			                Thread.sleep(100);
-//			            } catch (InterruptedException e) {} // ignore
-//			            monitor.worked(1);
-//			        }
-//			        monitor.done();
-//			        return new Status(IStatus.OK, "org.eclipse.alfresco.publisher.core", "Job finished");
-//				
+				// monitor.beginTask("My job is working...", 100);
+				// for (int i = 0; i < 100; i++) {
+				// try {
+				// Thread.sleep(100);
+				// } catch (InterruptedException e) {} // ignore
+				// monitor.worked(1);
+				// }
+				// monitor.done();
+				// return new Status(IStatus.OK,
+				// "org.eclipse.alfresco.publisher.core", "Job finished");
+				//
 				String taskName;
 				int totalWork;
 				if (preferences.isAlfresco()) {
 					taskName = "Stopping alfresco";
 					totalWork = DEPLOY_N_TASK + preferences.getStopTimeout();
 				} else {
-					taskName="Reloading share";
-					totalWork=DEPLOY_N_TASK;
+					taskName = "Reloading share";
+					totalWork = DEPLOY_N_TASK;
 				}
 				monitor.beginTask(taskName + " " + totalWork, totalWork);
-				
+
 				try {
-					new AMPDeployRunnable(AlfrescoDeploy.this, alfrescoFileUtils, project,
-							preferences,
+					new AMPDeployRunnable(AlfrescoDeploy.this,
+							alfrescoFileUtils, project, preferences,
 							shoulDeactivateIncrementalDeployement()
-									&& preferences.isIncrementalDeploy()).run(monitor);
+									&& preferences.isIncrementalDeploy())
+							.run(monitor);
 				} catch (InvocationTargetException e) {
 					LOGGER.error(e.getLocalizedMessage(), e.getCause());
-					MessageDialog.openError(shell, "Error", e.getLocalizedMessage());
+					MessageDialog.openError(shell, "Error",
+							e.getLocalizedMessage());
 				} catch (InterruptedException e) {
 					LOGGER.error(e.getLocalizedMessage(), e.getCause());
-					MessageDialog.openError(shell, "Error", e.getLocalizedMessage());
-				}		
-				
+					MessageDialog.openError(shell, "Error",
+							e.getLocalizedMessage());
+				}
 
-			
-				
 				return Status.OK_STATUS;
 			}
 		};
 
-		
-		
 		job.setUser(true);
 
 		job.schedule();
-		
-		
 
-//		try {
-//			new ProgressMonitorDialog(shell).run(true, true,
-//					new AMPDeployRunnable(this, alfrescoFileUtils, project,
-//							preferences,
-//							shoulDeactivateIncrementalDeployement()
-//									&& preferences.isIncrementalDeploy()));
-//		} catch (InvocationTargetException e) {
-//			LOGGER.error(e.getLocalizedMessage(), e.getCause());
-//			MessageDialog.openError(shell, "Error", e.getLocalizedMessage());
-//		} catch (InterruptedException e) {
-//			LOGGER.error(e.getLocalizedMessage(), e.getCause());
-//			MessageDialog.openError(shell, "Error", e.getLocalizedMessage());
-//		}
+		// try {
+		// new ProgressMonitorDialog(shell).run(true, true,
+		// new AMPDeployRunnable(this, alfrescoFileUtils, project,
+		// preferences,
+		// shoulDeactivateIncrementalDeployement()
+		// && preferences.isIncrementalDeploy()));
+		// } catch (InvocationTargetException e) {
+		// LOGGER.error(e.getLocalizedMessage(), e.getCause());
+		// MessageDialog.openError(shell, "Error", e.getLocalizedMessage());
+		// } catch (InterruptedException e) {
+		// LOGGER.error(e.getLocalizedMessage(), e.getCause());
+		// MessageDialog.openError(shell, "Error", e.getLocalizedMessage());
+		// }
 
 	}
 

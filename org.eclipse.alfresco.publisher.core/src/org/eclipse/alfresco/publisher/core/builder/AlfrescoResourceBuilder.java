@@ -39,9 +39,11 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 
 	class SampleDeltaVisitor implements IResourceDeltaVisitor {
 		private Deployer deployer;
+		private final String targetDir;
 
-		public SampleDeltaVisitor(Deployer deployer) {
+		public SampleDeltaVisitor(Deployer deployer, String targetDir) {
 			this.deployer = deployer;
+			this.targetDir = targetDir;
 		}
 
 		/*
@@ -55,7 +57,7 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 			IResource resource = delta.getResource();
 
 			if (resource.getProjectRelativePath().toString()
-					.startsWith("target/")) {
+					.startsWith(targetDir)) {
 
 				ResourceCommand resourceCommand = deployer.getResourceCommand(
 						resource, delta.getKind());
@@ -86,10 +88,10 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 	}
 
 	class SampleResourceVisitor implements IResourceVisitor {
-		//private Deployer deployer;
+		// private Deployer deployer;
 
 		public SampleResourceVisitor(Deployer deployer) {
-			//this.deployer = deployer;
+			// this.deployer = deployer;
 		}
 
 		public boolean visit(IResource resource) {
@@ -107,26 +109,33 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 	 * @see org.eclipse.core.internal.events.InternalBuilder#build(int,
 	 * java.util.Map, org.eclipse.core.runtime.IProgressMonitor)
 	 */
-	protected IProject[] build(int kind, Map<String, String> args, IProgressMonitor monitor)
-			throws CoreException {
+	protected IProject[] build(int kind, Map<String, String> args,
+			IProgressMonitor monitor) throws CoreException {
 
 		IProject projects[] = new IProject[1];
 		IProject project = getProject();
 		projects[0] = project;
-		
-		AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(project);
-		if(!preferences.isIncrementalDeploy()) {
+
+		AlfrescoPreferenceHelper preferences = new AlfrescoPreferenceHelper(
+				project);
+		if (!preferences.isIncrementalDeploy()) {
 			return projects;
 		}
-		
+
+		String targetDir = preferences.getTargetDir();
+		if (targetDir == null) {
+			return projects;
+		}
+
 		PrintWriter logPrinter = null;
-		IFile logFile = getProject().getFile("target/deployed.log");
+		IFile logFile = getProject().getFile(targetDir + "/deployed.log");
 		try {
 			FileWriter fileWriter = new FileWriter(logFile.getLocation()
 					.toFile(), true);
 			logPrinter = new PrintWriter(fileWriter);
 
-			Deployer deployer = buildDeployer(preferences, logPrinter);
+			Deployer deployer = buildDeployer(preferences, logPrinter,
+					targetDir);
 
 			if (deployer == null) {
 				return projects;
@@ -139,7 +148,7 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 				if (delta == null) {
 					fullBuild(deployer, monitor);
 				} else {
-					incrementalBuild(delta, deployer, monitor);
+					incrementalBuild(delta, deployer, monitor, targetDir);
 				}
 			}
 		} catch (IOException e1) {
@@ -155,8 +164,8 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 		return projects;
 	}
 
-	private Deployer buildDeployer(AlfrescoPreferenceHelper preferences, PrintWriter logPrinter)
-			throws CoreException {
+	private Deployer buildDeployer(AlfrescoPreferenceHelper preferences,
+			PrintWriter logPrinter, String targetDir) throws CoreException {
 
 		final String mode = preferences.getDeploymentMode();
 
@@ -164,7 +173,7 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 		if ("Shared".equals(mode)) {
 			deployer = buildSharedDeployer(logPrinter, preferences);
 		} else if ("Webapp".equals(mode)) {
-			deployer = buildWebappDeployer(logPrinter, preferences);
+			deployer = buildWebappDeployer(logPrinter, preferences, targetDir);
 		} else {
 			Display.getDefault().asyncExec(new Runnable() {
 
@@ -183,7 +192,8 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 	}
 
 	private Deployer buildWebappDeployer(PrintWriter logPrinter,
-			AlfrescoPreferenceHelper preferences) throws CoreException {
+			AlfrescoPreferenceHelper preferences, String targetDir)
+			throws CoreException {
 
 		String webappName = preferences.getWebappName();
 
@@ -214,9 +224,13 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 				fileMapping.load(fileReader);
 				fileReader.close();
 			} catch (FileNotFoundException e) {
-				throw new CoreException(new Status(IStatus.ERROR, AlfrescoPublisherActivator.PLUGIN_ID, e.getLocalizedMessage(), e));
+				throw new CoreException(new Status(IStatus.ERROR,
+						AlfrescoPublisherActivator.PLUGIN_ID,
+						e.getLocalizedMessage(), e));
 			} catch (IOException e) {
-				throw new CoreException(new Status(IStatus.ERROR, AlfrescoPublisherActivator.PLUGIN_ID, e.getLocalizedMessage(), e));
+				throw new CoreException(new Status(IStatus.ERROR,
+						AlfrescoPublisherActivator.PLUGIN_ID,
+						e.getLocalizedMessage(), e));
 			}
 			addDefault = "true".equals(fileMapping.getProperty(
 					"include.default", "true"));
@@ -226,35 +240,40 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 		if (addDefault) {
 			addDefaultMapping(fileMapping);
 		}
-		
+
 		String ampRelativePath = preferences.getTargetAmpLocation();
-		AlfrescoFileUtils fileUtils = new AlfrescoFileUtils(preferences.getServerPath(), webappName);
-		return new WebappDeployer(fileUtils, deploymentRoot, preferences.ignoreClasses(), ampRelativePath,
-				fileMapping, logPrinter);
+		AlfrescoFileUtils fileUtils = new AlfrescoFileUtils(
+				preferences.getServerPath(), webappName, targetDir);
+		return new WebappDeployer(fileUtils, deploymentRoot,
+				preferences.ignoreClasses(), ampRelativePath, fileMapping,
+				logPrinter, targetDir);
 
 	}
 
 	private Deployer buildSharedDeployer(PrintWriter logPrinter,
 			AlfrescoPreferenceHelper preferences) {
-//		String deployementRoot = null;
-//		
-//		if (deployementRoot == null) {
-			Display.getDefault().asyncExec(new Runnable() {
+		// String deployementRoot = null;
+		//
+		// if (deployementRoot == null) {
+		Display.getDefault().asyncExec(new Runnable() {
 
-				@Override
-				public void run() {
-					MessageDialog.openError(Display.getDefault()
-							.getActiveShell(), "Not yet",
-							"This feature \"Shared deployer\" is not yet implemented.");
-					// TODO Auto-generated method stub
+			@Override
+			public void run() {
+				MessageDialog
+						.openError(Display.getDefault().getActiveShell(),
+								"Not yet",
+								"This feature \"Shared deployer\" is not yet implemented.");
+				// TODO Auto-generated method stub
 
-				}
-			});
-			return null;
-		//}
-	//	AlfrescoFileUtils fileUtils = new AlfrescoFileUtils(preferences.getServerPath(), preferences.getWebappName());
-		//return new SharedDeployer(fileUtils, deployementRoot, preferences.ignoreClasses(), logPrinter);
-		
+			}
+		});
+		return null;
+		// }
+		// AlfrescoFileUtils fileUtils = new
+		// AlfrescoFileUtils(preferences.getServerPath(),
+		// preferences.getWebappName());
+		// return new SharedDeployer(fileUtils, deployementRoot,
+		// preferences.ignoreClasses(), logPrinter);
 
 	}
 
@@ -278,10 +297,10 @@ public class AlfrescoResourceBuilder extends IncrementalProjectBuilder {
 	}
 
 	protected void incrementalBuild(IResourceDelta delta, Deployer deployer,
-			IProgressMonitor monitor) throws CoreException {
+			IProgressMonitor monitor, String targetDir) throws CoreException {
 
 		// the visitor does the work.
-		delta.accept(new SampleDeltaVisitor(deployer));
+		delta.accept(new SampleDeltaVisitor(deployer, targetDir));
 
 	}
 }

@@ -139,7 +139,7 @@ public class AlfrescoDeploymentPropertyPage extends PropertyPage implements
 		table.setLinesVisible(true);
 
 		createTableViewer(viewer, pref);
-		
+
 		btnReloadAmpList = new Button(grpAmpSettings, SWT.NONE);
 		btnReloadAmpList.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -215,9 +215,6 @@ public class AlfrescoDeploymentPropertyPage extends PropertyPage implements
 					viewer, dbc, "installDate"));
 		}
 
-		
-		
-
 		list = new WritableList(new ArrayList<AMPFile>(), AMPFile.class);
 		ViewerSupport.bind(
 				viewer,
@@ -234,7 +231,7 @@ public class AlfrescoDeploymentPropertyPage extends PropertyPage implements
 		try {
 			setErrorMessage(null);
 			alfrescoFileUtils = new AlfrescoFileUtils(pref.getServerPath(),
-					pref.getWebappName());
+					pref.getWebappName(), pref.getTargetDir());
 		} catch (AlfrescoDeployementException e) {
 			setErrorMessage(e.getLocalizedMessage());
 			return;
@@ -250,8 +247,6 @@ public class AlfrescoDeploymentPropertyPage extends PropertyPage implements
 			list.add(ampFile);
 		}
 	}
-	
-	
 
 	@Override
 	public boolean performOk() {

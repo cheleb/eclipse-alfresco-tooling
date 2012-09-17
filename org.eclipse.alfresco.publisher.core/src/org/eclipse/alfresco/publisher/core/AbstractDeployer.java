@@ -26,11 +26,13 @@ public abstract class AbstractDeployer implements Deployer {
 
 	private boolean ignoreClasses;
 	private AlfrescoFileUtils fileHelper;
+	private final String targetDir;
 
-	public AbstractDeployer(AlfrescoFileUtils fileHelper, boolean ignoreClasses,
-			PrintWriter printWriter) {
+	public AbstractDeployer(AlfrescoFileUtils fileHelper,
+			boolean ignoreClasses, PrintWriter printWriter, String targetDir) {
 		this.fileHelper = fileHelper;
 		this.logPrinter = printWriter;
+		this.targetDir = targetDir;
 	}
 
 	@Override
@@ -92,14 +94,17 @@ public abstract class AbstractDeployer implements Deployer {
 	protected boolean classPathResource(IResource resource) {
 
 		return resource.getProjectRelativePath().toString()
-				.startsWith("target/classes/");
+				.startsWith(targetDir + "/classes/");
 	}
 
 	public String getPathRelativeToClasses(String projectRelativePath) {
 		String ret;
-		int i = projectRelativePath.indexOf("target/classes/");
+		int i = projectRelativePath.indexOf(fileHelper.getTargetDir()
+				+ "/classes/");
 		if (i == 0) {
-			ret = projectRelativePath.substring("target/classes/".length());
+			ret = projectRelativePath
+					.substring((fileHelper.getTargetDir() + "/classes/")
+							.length());
 		} else {
 			throw new RuntimeException("Not classpath: " + projectRelativePath);
 		}

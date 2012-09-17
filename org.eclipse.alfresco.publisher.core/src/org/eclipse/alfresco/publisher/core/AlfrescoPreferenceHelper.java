@@ -47,6 +47,8 @@ public class AlfrescoPreferenceHelper {
 
 	private static final String SERVER_STOP_TIMEOUT = "server.stop.timeout";
 
+	public static final String TARGET = "target";
+
 	private Preferences preference;
 
 	private IProject project;
@@ -127,28 +129,25 @@ public class AlfrescoPreferenceHelper {
 		return false;
 	}
 
-	public void storePassword(String password)
-			throws StorageException {
+	public void storePassword(String password) throws StorageException {
 		if (isSecuredStorage()) {
 			ISecurePreferences root = SecurePreferencesFactory.getDefault();
 			ISecurePreferences node = root.node("/org/eclipse/alfresco/"
 					+ project.getName());
 			node.put(PASSWORD, password, true /* encrypt */);
-		}else {
+		} else {
 			preference.put(PASSWORD, password);
 		}
 
 	}
 
-
-	public String getPassword()
-			throws StorageException {
-		if(isSecuredStorage()) {
+	public String getPassword() throws StorageException {
+		if (isSecuredStorage()) {
 			ISecurePreferences root = SecurePreferencesFactory.getDefault();
 			ISecurePreferences node = root.node("/org/eclipse/alfresco/"
 					+ project.getName());
 			return node.get(PASSWORD, null);
-		}else {
+		} else {
 			return preference.get(PASSWORD, null);
 		}
 
@@ -279,6 +278,11 @@ public class AlfrescoPreferenceHelper {
 
 		return preference.getInt(AlfrescoPreferenceHelper.SERVER_STOP_TIMEOUT,
 				TIMEOUT_30);
+	}
+
+	public String getTargetDir() {
+
+		return preference.get(AlfrescoPreferenceHelper.TARGET, null);
 	}
 
 }

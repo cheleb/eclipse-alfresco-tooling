@@ -13,10 +13,11 @@ public class SharedDeployer extends AbstractDeployer {
 	 * @param sharedPath
 	 * @param ampLibFileName
 	 * @param printWriter
+	 * @param targetDir
 	 */
-	public SharedDeployer(AlfrescoFileUtils fileUtils, String sharedPath, boolean ignoreClasses,
-			PrintWriter printWriter) {
-		super(fileUtils, ignoreClasses, printWriter);
+	public SharedDeployer(AlfrescoFileUtils fileUtils, String sharedPath,
+			boolean ignoreClasses, PrintWriter printWriter, String targetDir) {
+		super(fileUtils, ignoreClasses, printWriter, targetDir);
 		this.sharedPath = sharedPath;
 	}
 

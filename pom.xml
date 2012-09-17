@@ -1,9 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.eclipse.alfresco</groupId>
   <artifactId>org.eclipse.alfresco.publisher</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <prerequisites>
     <maven>3.0</maven>
@@ -27,11 +27,6 @@
       <id>m2e</id>
       <layout>p2</layout>
       <url>http://download.eclipse.org/technology/m2e/releases/1.0</url>
-    </repository>
-    <repository>
-      <id>spring</id>
-      <layout>p2</layout>
-      <url>http://dist.springsource.com/release/TOOLS/market-place/e3.7/</url>
     </repository>
   </repositories>
   <properties>
@@ -165,5 +160,6 @@
     <module>org.eclipse.alfresco.publisher.ui</module>
     <module>org.eclipse.alfresco.publisher.feature</module>
     <module>org.eclipse.alfresco.publisher.site</module>
+    <module>maven-alfdeploy-plugin</module>
   </modules>
 </project>
